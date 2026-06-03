@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a6fc4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="MarathonLog">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='80' fill='%231a6fc4'/%3E%3Ctext x='256' y='360' text-anchor='middle' font-size='300'%3E🏃%3C/text%3E%3C/svg%3E">
+<title>MarathonLog</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { -webkit-tap-highlight-color: transparent; }
+  html, body { margin:0; padding:0; background:#f2f7fc; overscroll-behavior-y:none; }
+  body { font-family:'DM Sans',sans-serif; -webkit-font-smoothing:antialiased; }
+  input, select, button, textarea { font-size:16px; } /* prevent iOS zoom on focus */
+  #root { min-height:100vh; }
+  /* Loading splash */
+  #splash { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg,#e0eefc,#f2f7fc,#d4e8f8); z-index:9999; }
+  #splash .logo { font-family:'Bebas Neue',sans-serif; font-size:3rem; letter-spacing:5px; color:#1a6fc4; }
+  #splash .sub { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:2px; color:#6a87a8; margin-top:4px; }
+  #splash .spinner { margin-top:24px; width:32px; height:32px; border:3px solid #ccddf0; border-top-color:#1a6fc4; border-radius:50%; animation:spin 0.8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .install-banner { position:fixed; bottom:0; left:0; right:0; background:#1a6fc4; color:#fff; padding:14px 18px; display:flex; align-items:center; justify-content:space-between; gap:12px; z-index:500; font-family:'DM Sans',sans-serif; box-shadow:0 -4px 16px rgba(26,111,196,.25); }
+  .install-banner button { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:1px; padding:8px 16px; border:none; cursor:pointer; }
+  .install-banner .yes { background:#fff; color:#1a6fc4; }
+  .install-banner .no { background:transparent; color:#fff; border:1px solid rgba(255,255,255,.4); }
+</style>
+</head>
+<body>
+<div id="splash">
+  <div class="logo">Marathon<span style="color:#152235">Log</span></div>
+  <div class="sub">TRACK · ANALYSE · IMPROVE</div>
+  <div class="spinner"></div>
+</div>
+<div id="root"></div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, useCallback } = React;
+
+
+// ─── CONSTANTS ───────────────────────────────────────────────
+const MAJORS = [
+  { name: "Tokyo Marathon",          flag: "🇯🇵", city: "Tokyo, Japan" },
+  { name: "Boston Marathon",         flag: "🇺🇸", city: "Boston, USA" },
+  { name: "London Marathon",         flag: "🇬🇧", city: "London, England" },
+  { name: "Berlin Marathon",         flag: "🇩🇪", city: "Berlin, Tyskland" },
+  { name: "Chicago Marathon",        flag: "🇺🇸", city: "Chicago, USA" },
+  { name: "New York City Marathon",  flag: "🇺🇸", city: "New York, USA" },
+  { name: "Sydney Marathon",         flag: "🇦🇺", city: "Sydney, Australien" },
+  { name: "Cape Town Marathon",      flag: "🇿🇦", city: "Cape Town, Sydafrika" },
+  { name: "Shanghai Marathon",       flag: "🇨🇳", city: "Shanghai, Kina" },
+];
+
+const SEG_LABELS = [
+  "0–5 km","5–10 km","10–15 km","15–20 km",
+  "20–21.095 km","21.095–25 km","25–30 km","30–35 km","35–40 km","40–42.195 km"
+];
+const SEG_DISTS = [5, 5, 5, 5, 1.095, 3.905, 5, 5, 5, 2.195];
+const SEG_SHORT = ["0-5","5-10","10-15","15-20","20-½","½-25","25-30","30-35","35-40","40-fin"];
+const RACE_COLORS = ["#1a6fc4","#c040d0","#1a8c50","#c08820","#d03030","#0d8888"];
+
+// Country name → ISO numeric (world-atlas countries-110m)
+const COUNTRY_ISO = {
+  "Danmark":208,"Sverige":752,"Norge":578,"Finland":246,"Island":352,
+  "England":826,"Skotland":826,"Wales":826,"Nordirland":826,"UK":826,
+  "Irland":372,"Frankrig":250,"Spanien":724,"Portugal":620,"Italien":380,
+  "Grækenland":300,"Nederlandene":528,"Holland":528,"Belgien":56,
+  "Schweiz":756,"Østrig":40,"Tyskland":276,"Polen":616,"Tjekkiet":203,
+  "Ungarn":348,"Kroatien":191,"Serbien":688,"Rumænien":642,"Ukraine":804,
+  "Rusland":643,"Tyrkiet":792,"Israel":376,"Egypten":818,"Marokko":504,
+  "Sydafrika":710,"Kenya":404,"Nigeria":566,"Etiopien":231,"Tanzania":834,
+  "Uganda":800,"Ghana":288,"Cameroun":120,"Mozambique":508,"Angola":24,
+  "Japan":392,"Kina":156,"Sydkorea":410,"Taiwan":158,"Indien":356,
+  "Pakistan":586,"Bangladesh":50,"Thailand":764,"Vietnam":704,
+  "Filippinerne":608,"Indonesien":360,"Malaysia":458,"Singapore":702,
+  "Australien":36,"New Zealand":554,"Canada":124,"USA":840,"Mexico":484,
+  "Brasilien":76,"Argentina":32,"Colombia":170,"Chile":152,"Peru":604,
+  "Venezuela":862,"Bolivia":68,"Paraguay":600,"Uruguay":858,"Ecuador":218,
+  "Saudi-Arabien":682,"UAE":784,"Qatar":634,"Iran":364,"Irak":368,
+  "Kasakhstan":398,"Usbekistan":860,"Hviderusland":112,"Letland":428,
+  "Litauen":440,"Estland":233,"Slovakiet":703,"Slovenien":705,"Bulgarien":100,
+  "Albanien":8,"Bosnien":70,"Montenegro":499,"Nordmakedonien":807,
+  "Tunesien":788,"Algeriet":12,"Libyen":434,"Sudan":729,"Sydsudan":728,
+  "Senegal":686,"Mali":466,"Niger":562,"Chad":148,"Somalia":706,
+  "Namibia":516,"Botswana":72,"Zimbabwe":716,"Zambia":894,"Malawi":454,
+  "Rwanda":646,"Burundi":108,"Congo DR":180,"Mongoliet":496,"Myanmar":104,
+  "Sri Lanka":144,"Nepal":524,"Afghanistan":4,"Jordan":400,"Libanon":422,
+  "Syrien":760,"Armenien":51,"Georgien":268,"Aserbajdsjan":31,
+};
+
+// ─── UTILS ───────────────────────────────────────────────────
+function t2s(t) {
+  if (!t || !t.trim()) return null;
+  const p = t.trim().split(":").map(Number);
+  if (p.some(isNaN)) return null;
+  if (p.length === 3) return p[0] * 3600 + p[1] * 60 + p[2];
+  if (p.length === 2) return p[0] * 60 + p[1];
+  return null;
+}
+function s2t(s) {
+  if (s == null || isNaN(s)) return "–";
+  s = Math.round(s);
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sc = s % 60;
+  if (h > 0) return `${h}:${String(m).padStart(2,"0")}:${String(sc).padStart(2,"0")}`;
+  return `${String(m).padStart(2,"0")}:${String(sc).padStart(2,"0")}`;
+}
+function paceFmt(dist, secs) {
+  if (!secs || !dist) return "–";
+  return s2t(Math.round(secs / dist)) + "/km";
+}
+function fmtDate(d) {
+  if (!d) return "–";
+  return new Date(d).toLocaleDateString("da-DK", { year:"numeric", month:"short", day:"numeric" });
+}
+function uid() { return Date.now() + "_" + Math.random().toString(36).slice(2); }
+
+function computeRaceStats(splitsRaw) {
+  const sp = (splitsRaw || Array(10).fill("")).map(t2s);
+  const total = sp.filter(Boolean).length ? sp.filter(Boolean).reduce((a,b)=>a+b,0) : null;
+  const halfParts = sp.slice(0, 5);
+  const half = halfParts.every(s => s != null) ? halfParts.reduce((a,b)=>a+b,0) : null;
+  const seg2025 = (sp[4] != null && sp[5] != null) ? sp[4] + sp[5] : null;
+  return { sp, total, half, seg2025 };
+}
+
+// ─── STORAGE ─────────────────────────────────────────────────
+const DB = {
+  getUsers: () => JSON.parse(localStorage.getItem("ml_users") || "{}"),
+  saveUsers: u => localStorage.setItem("ml_users", JSON.stringify(u)),
+  getRaces: user => JSON.parse(localStorage.getItem("ml_races_" + user) || "[]"),
+  saveRaces: (user, races) => localStorage.setItem("ml_races_" + user, JSON.stringify(races)),
+  getSession: () => localStorage.getItem("ml_session"),
+  setSession: u => localStorage.setItem("ml_session", u),
+  clearSession: () => localStorage.removeItem("ml_session"),
+};
+
+// ─── WORLD MAP ───────────────────────────────────────────────
+function WorldMap({ races }) {
+  const svgRef = useRef(null);
+  const [tooltip, setTooltip] = useState({ visible: false, text: "", x: 0, y: 0 });
+  const worldRef = useRef(null);
+  const [ready, setReady] = useState(false);
+  const [error, setError] = useState(false);
+
+  const visitedCodes = new Set();
+  const codeToNames = {};
+  races.forEach(r => {
+    if (r.country && COUNTRY_ISO[r.country]) {
+      const code = COUNTRY_ISO[r.country];
+      visitedCodes.add(code);
+      if (!codeToNames[code]) codeToNames[code] = [];
+      if (!codeToNames[code].includes(r.country)) codeToNames[code].push(r.country);
+    }
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        // Load d3 + topojson + world data
+        if (!window.d3) {
+          await new Promise((res, rej) => {
+            const s = document.createElement("script");
+            s.src = "https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js";
+            s.onload = res; s.onerror = rej;
+            document.head.appendChild(s);
+          });
+        }
+        if (!window.topojson) {
+          await new Promise((res, rej) => {
+            const s = document.createElement("script");
+            s.src = "https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js";
+            s.onload = res; s.onerror = rej;
+            document.head.appendChild(s);
+          });
+        }
+        if (!window._worldGeo) {
+          const resp = await fetch("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json");
+          window._worldGeo = await resp.json();
+        }
+        if (!cancelled) { worldRef.current = window._worldGeo; setReady(true); }
+      } catch(e) { if (!cancelled) setError(true); }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    if (!ready || !svgRef.current || !worldRef.current) return;
+    const d3 = window.d3, topojson = window.topojson;
+    const world = worldRef.current;
+    const W = 960, H = 480;
+    const svg = d3.select(svgRef.current);
+    svg.selectAll("*").remove();
+    svg.attr("viewBox", `0 0 ${W} ${H}`);
+
+    const proj = d3.geoNaturalEarth1().scale(150).translate([W/2, H/2]);
+    const path = d3.geoPath().projection(proj);
+
+    // Ocean
+    svg.append("rect").attr("width", W).attr("height", H).attr("fill", "#b8d8f0");
+
+    // Graticule
+    const graticule = d3.geoGraticule()();
+    svg.append("path").datum(graticule).attr("d", path)
+      .attr("fill","none").attr("stroke","#a0c8e8").attr("stroke-width",0.3);
+
+    const countries = topojson.feature(world, world.objects.countries);
+    const borders = topojson.mesh(world, world.objects.countries, (a,b) => a !== b);
+
+    svg.selectAll(".country")
+      .data(countries.features)
+      .enter().append("path")
+      .attr("class","country")
+      .attr("d", path)
+      .attr("fill", d => visitedCodes.has(+d.id) ? "#1a6fc4" : "#daeef8")
+      .attr("stroke", "#fff")
+      .attr("stroke-width", 0.3)
+      .style("cursor", d => visitedCodes.has(+d.id) ? "pointer" : "default")
+      .on("mousemove", function(event, d) {
+        const code = +d.id;
+        const names = codeToNames[code] || [];
+        if (!names.length) return;
+        const cnt = races.filter(r => names.includes(r.country)).length;
+        const rect = svgRef.current.closest(".map-outer").getBoundingClientRect();
+        setTooltip({
+          visible: true,
+          text: `${names[0]} — ${cnt} løb`,
+          x: event.clientX - rect.left + 12,
+          y: event.clientY - rect.top + 12
+        });
+      })
+      .on("mouseleave", () => setTooltip(t => ({...t, visible: false})));
+
+    svg.append("path").datum(borders).attr("d", path)
+      .attr("fill","none").attr("stroke","#fff").attr("stroke-width",0.5);
+
+  }, [ready, races]);
+
+  const visited = new Set(races.map(r => r.country).filter(Boolean));
+
+  return (
+    <div>
+      <div style={{display:"flex",gap:28,marginBottom:20,flexWrap:"wrap"}}>
+        {[
+          { val: visited.size, lbl: "Lande" },
+          { val: races.length, lbl: "Løb i alt" },
+        ].map(s => (
+          <div key={s.lbl}>
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2.2rem",color:"#1a6fc4",lineHeight:1}}>{s.val}</div>
+            <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.6rem",letterSpacing:"1.5px",color:"#6a87a8",textTransform:"uppercase"}}>{s.lbl}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="map-outer" style={{position:"relative",background:"#b8d8f0",borderRadius:4,overflow:"hidden",border:"1px solid #ccddf0",boxShadow:"0 4px 20px rgba(26,111,196,.1)"}}>
+        {!ready && !error && (
+          <div style={{padding:40,textAlign:"center",fontFamily:"'DM Mono',monospace",fontSize:"0.75rem",color:"#6a87a8"}}>Indlæser verdenskort…</div>
+        )}
+        {error && (
+          <div style={{padding:40,textAlign:"center",fontFamily:"'DM Mono',monospace",fontSize:"0.75rem",color:"#6a87a8"}}>Kortet kunne ikke indlæses. Tjek din internetforbindelse.</div>
+        )}
+        {ready && <svg ref={svgRef} style={{width:"100%",height:"auto",display:"block"}} />}
+        {tooltip.visible && (
+          <div style={{position:"absolute",top:tooltip.y,left:tooltip.x,background:"#fff",border:"1px solid #1a6fc4",padding:"6px 12px",fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",pointerEvents:"none",whiteSpace:"nowrap",boxShadow:"0 4px 12px rgba(26,111,196,.15)",zIndex:10}}>
+            {tooltip.text}
+          </div>
+        )}
+      </div>
+
+      <div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:14}}>
+        {[...visited].map(c => {
+          const n = races.filter(r=>r.country===c).length;
+          return <span key={c} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.65rem",letterSpacing:"1px",padding:"4px 11px",border:"1px solid #1a6fc4",color:"#1a6fc4",textTransform:"uppercase"}}>{c} ({n})</span>;
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── MAJORS VIEW ─────────────────────────────────────────────
+function MajorsView({ races }) {
+  return (
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:2}}>
+      {MAJORS.map((m, i) => {
+        const runs = races.filter(r => r.major === m.name).sort((a,b)=>new Date(a.date)-new Date(b.date));
+        const times = runs.map(r => t2s(r.totalTime)).filter(Boolean);
+        const pb = times.length ? Math.min(...times) : null;
+        return (
+          <div key={m.name} style={{background: runs.length ? "#f5f9ff" : "#fff",border: `1px solid ${runs.length ? "#c0d8f5" : "#ccddf0"}`,padding:"22px 24px",position:"relative",overflow:"hidden",borderLeft:`3px solid ${runs.length ? "#1a6fc4" : "#ccddf0"}`}}>
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"3.5rem",color:"rgba(26,111,196,0.07)",position:"absolute",right:12,top:4,lineHeight:1}}>{String(i+1).padStart(2,"0")}</div>
+            <div style={{fontSize:"1.6rem",marginBottom:6}}>{m.flag}</div>
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.35rem",letterSpacing:2}}>{m.name}</div>
+            <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.63rem",color:"#6a87a8",letterSpacing:1,textTransform:"uppercase",marginBottom:12}}>{m.city}</div>
+            <span style={{fontFamily:"'DM Mono',monospace",fontSize:"0.6rem",letterSpacing:"1.5px",padding:"3px 9px",background:runs.length?"#1a6fc4":"transparent",color:runs.length?"#fff":"#6a87a8",border:runs.length?"none":"1px solid #ccddf0",textTransform:"uppercase"}}>
+              {runs.length ? `✓ ${runs.length}× gennemført` : "Mangler"}
+            </span>
+            {runs.length > 0 && (
+              <div style={{display:"flex",flexDirection:"column",gap:4,marginTop:10}}>
+                {runs.map(r => {
+                  const s = t2s(r.totalTime);
+                  const isPB = s && s === pb && runs.length > 1;
+                  return (
+                    <div key={r.id} style={{display:"flex",justifyContent:"space-between",fontFamily:"'DM Mono',monospace",fontSize:"0.7rem",padding:"4px 8px",background:"rgba(26,111,196,0.06)",borderLeft:"2px solid #1a6fc4"}}>
+                      <span style={{color:"#6a87a8"}}>{r.date ? new Date(r.date).toLocaleDateString("da-DK",{year:"numeric",month:"short"}) : "–"}</span>
+                      <span style={{color:"#1a6fc4",fontWeight:500}}>{r.totalTime || "–"}{isPB ? " 🏆" : ""}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── RACE FORM MODAL ─────────────────────────────────────────
+function RaceModal({ race, onSave, onClose }) {
+  const [form, setForm] = useState(() => {
+    if (race) return {
+      name: race.name||"", country: race.country||"", date: race.date||"", major: race.major||"",
+      splits: race.splitsRaw || Array(10).fill("")
+    };
+    return { name:"", country:"", date:"", major:"", splits: Array(10).fill("") };
+  });
+  const [err, setErr] = useState("");
+
+  const splitIds = [
+    "0–5 km","5–10 km","10–15 km","15–20 km",
+    "20–21.095 km","21.095–25 km","25–30 km","30–35 km","35–40 km","40–42.195 km"
+  ];
+
+  function handleSave() {
+    if (!form.name.trim()) { setErr("Angiv løbsnavn"); return; }
+    const sp = form.splits.map(t2s);
+    const total = sp.filter(Boolean).length ? sp.filter(Boolean).reduce((a,b)=>a+b,0) : null;
+    onSave({
+      id: race ? race.id : uid(),
+      name: form.name.trim(), country: form.country.trim(),
+      date: form.date, major: form.major,
+      splitsRaw: form.splits,
+      totalTime: total ? s2t(total) : null,
+    });
+  }
+
+  const inp = { background:"#f2f7fc", border:"1px solid #ccddf0", color:"#152235", padding:"9px 12px", fontFamily:"'DM Mono',monospace", fontSize:"0.8rem", width:"100%", outline:"none" };
+  const lbl = { display:"block", fontFamily:"'DM Mono',monospace", fontSize:"0.6rem", letterSpacing:"1.5px", color:"#6a87a8", textTransform:"uppercase", marginBottom:4 };
+
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(100,150,200,0.45)",backdropFilter:"blur(4px)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center"}} onClick={e=>{ if(e.target===e.currentTarget)onClose(); }}>
+      <div style={{background:"#fff",border:"1px solid #1a6fc4",padding:"32px 36px",width:580,maxWidth:"96vw",maxHeight:"92vh",overflowY:"auto",boxShadow:"0 20px 60px rgba(26,111,196,.18)"}}>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.7rem",letterSpacing:3,color:"#1a6fc4",marginBottom:20}}>{race ? "Rediger Løb" : "Tilføj Løb"}</div>
+
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
+          <div><label style={lbl}>Løbsnavn</label><input style={inp} value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="f.eks. Copenhagen Marathon"/></div>
+          <div><label style={lbl}>Land</label><input style={inp} value={form.country} onChange={e=>setForm(f=>({...f,country:e.target.value}))} placeholder="f.eks. Danmark"/></div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
+          <div><label style={lbl}>Dato</label><input type="date" style={inp} value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))}/></div>
+          <div>
+            <label style={lbl}>World Major?</label>
+            <select style={{...inp,appearance:"none"}} value={form.major} onChange={e=>setForm(f=>({...f,major:e.target.value}))}>
+              <option value="">Nej / andet løb</option>
+              {MAJORS.map(m=><option key={m.name}>{m.name}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1rem",letterSpacing:2,color:"#1a6fc4",margin:"18px 0 4px"}}>Splittider</div>
+        <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.6rem",color:"#6a87a8",marginBottom:10}}>Format: mm:ss eller h:mm:ss — 20-25 km beregnes automatisk fra de to delstrækninger</div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
+          {splitIds.map((lbl2,i) => (
+            <div key={i}>
+              <label style={lbl}>{lbl2}</label>
+              <input style={inp} placeholder="mm:ss" value={form.splits[i]||""} onChange={e=>{
+                const s=[...form.splits]; s[i]=e.target.value; setForm(f=>({...f,splits:s}));
+              }}/>
+            </div>
+          ))}
+        </div>
+
+        {err && <div style={{color:"#d03030",fontFamily:"'DM Mono',monospace",fontSize:"0.7rem",marginTop:10}}>{err}</div>}
+        <div style={{display:"flex",gap:8,marginTop:20}}>
+          <button onClick={onClose} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.7rem",padding:"10px 18px",background:"transparent",border:"1px solid #ccddf0",color:"#6a87a8",cursor:"pointer"}}>Annuller</button>
+          <button onClick={handleSave} style={{flex:1,fontFamily:"'Bebas Neue',sans-serif",fontSize:"1rem",letterSpacing:3,padding:"12px",background:"#1a6fc4",color:"#fff",border:"none",cursor:"pointer"}}>GEM LØB</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── RACES VIEW ──────────────────────────────────────────────
+function RacesView({ races, onAdd, onEdit, onDelete }) {
+  const sorted = [...races].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const times = races.map(r=>t2s(r.totalTime)).filter(Boolean);
+  const pb = times.length ? Math.min(...times) : null;
+
+  const th = { padding:"8px 13px", fontFamily:"'DM Mono',monospace", fontSize:"0.6rem", letterSpacing:"2px", color:"#6a87a8", textTransform:"uppercase", textAlign:"left", whiteSpace:"nowrap" };
+  const td = { padding:"11px 13px", whiteSpace:"nowrap" };
+
+  return (
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:22,flexWrap:"wrap",gap:12}}>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2.6rem",letterSpacing:3}}>Alle <span style={{color:"#1a6fc4"}}>Løb</span></div>
+        <button onClick={onAdd} style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"0.9rem",letterSpacing:3,padding:"10px 22px",background:"#1a6fc4",color:"#fff",border:"none",cursor:"pointer"}}>+ Tilføj Løb</button>
+      </div>
+      {races.length === 0 ? (
+        <div style={{textAlign:"center",padding:"60px 20px",fontFamily:"'DM Mono',monospace",fontSize:"0.75rem",color:"#6a87a8"}}>Ingen løb endnu — klik "Tilføj Løb" for at starte</div>
+      ) : (
+        <div style={{overflowX:"auto"}}>
+          <table style={{width:"100%",borderCollapse:"collapse",fontFamily:"'DM Mono',monospace",fontSize:"0.78rem"}}>
+            <thead>
+              <tr style={{borderBottom:"2px solid #1a6fc4"}}>
+                <th style={th}>#</th><th style={th}>Løb</th><th style={th}>Land</th>
+                <th style={th}>Dato</th><th style={th}>Sluttid</th><th style={th}>Tempo</th><th style={th}></th>
+              </tr>
+            </thead>
+            <tbody>
+              {sorted.map((r,i) => {
+                const s = t2s(r.totalTime);
+                const isPB = s && s === pb;
+                return (
+                  <tr key={r.id} style={{borderBottom:"1px solid #e8f2fb"}}>
+                    <td style={{...td,color:"#6a87a8",fontSize:"0.7rem"}}>{i+1}</td>
+                    <td style={{...td,fontFamily:"'DM Sans',sans-serif",fontWeight:500}}>
+                      {r.major && <span style={{display:"inline-block",width:6,height:6,background:"#c08820",borderRadius:"50%",marginRight:5,verticalAlign:"middle"}}/>}
+                      {r.name}
+                      {isPB && <span style={{fontSize:"0.55rem",letterSpacing:1,padding:"2px 6px",background:"#c08820",color:"#fff",marginLeft:7,verticalAlign:"middle"}}>PB</span>}
+                    </td>
+                    <td style={{...td,color:"#6a87a8"}}>{r.country||"–"}</td>
+                    <td style={td}>{fmtDate(r.date)}</td>
+                    <td style={{...td,color:"#1a6fc4",fontWeight:500}}>{r.totalTime||"–"}</td>
+                    <td style={{...td,color:"#6a87a8"}}>{paceFmt(42.195,s)}</td>
+                    <td style={td}>
+                      <div style={{display:"flex",gap:6}}>
+                        <button onClick={()=>onEdit(r)} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.65rem",letterSpacing:1,padding:"4px 10px",border:"1px solid #ccddf0",background:"transparent",color:"#6a87a8",cursor:"pointer"}}>Rediger</button>
+                        <button onClick={()=>onDelete(r)} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.65rem",letterSpacing:1,padding:"4px 10px",border:"1px solid #ccddf0",background:"transparent",color:"#d03030",cursor:"pointer"}}>Slet</button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── STATS VIEW ──────────────────────────────────────────────
+function StatsView({ races }) {
+  const sorted = [...races].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const [selected, setSelected] = useState(() => sorted.length ? new Set([sorted[sorted.length-1].id]) : new Set());
+  const [showAvg, setShowAvg] = useState(false);
+
+  useEffect(() => {
+    if (sorted.length && selected.size === 0) setSelected(new Set([sorted[sorted.length-1].id]));
+  }, [races]);
+
+  const selRaces = sorted.filter(r => selected.has(r.id));
+  const allTimes = races.map(r=>t2s(r.totalTime)).filter(Boolean);
+  const pb = allTimes.length ? Math.min(...allTimes) : null;
+  const avgTime = allTimes.length ? allTimes.reduce((a,b)=>a+b,0)/allTimes.length : null;
+
+  // Compute per-race data
+  const raceData = selRaces.map(r => {
+    const { sp, total, half, seg2025 } = computeRaceStats(r.splitsRaw);
+    return { r, sp, total, half, seg2025 };
+  });
+
+  // Average across selected races
+  let avgData = null;
+  if (showAvg && selRaces.length >= 2) {
+    const avgSp = SEG_DISTS.map((_,i) => {
+      const vals = raceData.map(d=>d.sp[i]).filter(v=>v!=null);
+      return vals.length ? Math.round(vals.reduce((a,b)=>a+b,0)/vals.length) : null;
+    });
+    const ah = avgSp.slice(0,5).every(s=>s!=null) ? avgSp.slice(0,5).reduce((a,b)=>a+b,0) : null;
+    const at = avgSp.filter(Boolean).length ? avgSp.filter(Boolean).reduce((a,b)=>a+b,0) : null;
+    const a2025 = (avgSp[4]!=null&&avgSp[5]!=null) ? avgSp[4]+avgSp[5] : null;
+    avgData = { sp:avgSp, half:ah, total:at, seg2025:a2025 };
+  }
+
+  const toggleRace = id => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id) && next.size > 1) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const panelStyle = { background:"#fff", border:"1px solid #ccddf0", padding:"20px 22px" };
+  const h3Style = { fontFamily:"'Bebas Neue',sans-serif", fontSize:"1.15rem", letterSpacing:2, color:"#1a6fc4", marginBottom:14 };
+
+  return (
+    <div>
+      {/* Summary cards */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:20}}>
+        {[
+          {val:races.length, lbl:"Løb i alt"},
+          {val:pb?s2t(pb):"–", lbl:"Personlig rekord"},
+          {val:avgTime?s2t(Math.round(avgTime)):"–", lbl:"Gennemsnitstid"},
+          {val:pb?paceFmt(42.195,pb):"–", lbl:"Bedste tempo"},
+        ].map(c => (
+          <div key={c.lbl} style={panelStyle}>
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.8rem",color:"#1a6fc4",lineHeight:1,marginBottom:2}}>{c.val}</div>
+            <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.57rem",letterSpacing:"1.5px",color:"#6a87a8",textTransform:"uppercase"}}>{c.lbl}</div>
+          </div>
+        ))}
+      </div>
+
+      {races.length === 0 ? (
+        <div style={{textAlign:"center",padding:60,fontFamily:"'DM Mono',monospace",fontSize:"0.75rem",color:"#6a87a8"}}>Ingen løb endnu</div>
+      ) : (
+        <>
+          {/* Toolbar */}
+          <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:20,alignItems:"center"}}>
+            {sorted.map(r => (
+              <button key={r.id} onClick={()=>toggleRace(r.id)} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",letterSpacing:1,padding:"6px 13px",background:selected.has(r.id)?"#e8f2fb":"transparent",border:`1px solid ${selected.has(r.id)?"#1a6fc4":"#ccddf0"}`,color:selected.has(r.id)?"#1a6fc4":"#6a87a8",cursor:"pointer",whiteSpace:"nowrap"}}>
+                {r.name} {r.date?new Date(r.date).getFullYear():""}
+              </button>
+            ))}
+            {selRaces.length >= 2 && (
+              <button onClick={()=>setShowAvg(a=>!a)} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",letterSpacing:1,padding:"6px 13px",background:showAvg?"#fdf8f0":"transparent",border:`1px solid ${showAvg?"#c08820":"#ccddf0"}`,color:showAvg?"#c08820":"#6a87a8",cursor:"pointer"}}>
+                ⌀ Gennemsnit
+              </button>
+            )}
+          </div>
+
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:18}}>
+            {/* Splits table */}
+            <div style={panelStyle}>
+              <div style={h3Style}>Splittider</div>
+              {/* Header */}
+              <div style={{display:"flex",gap:2,paddingBottom:6,borderBottom:"1px solid #1a6fc4",marginBottom:4}}>
+                <span style={{fontFamily:"'DM Mono',monospace",fontSize:"0.58rem",color:"#6a87a8",flex:"0 0 110px"}}>SEGMENT</span>
+                {raceData.map((d,i) => (
+                  <span key={d.r.id} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.56rem",color:RACE_COLORS[i%RACE_COLORS.length],flex:1,textAlign:"right",letterSpacing:1}}>
+                    {d.r.name.substring(0,9)}
+                  </span>
+                ))}
+                {avgData && <span style={{fontFamily:"'DM Mono',monospace",fontSize:"0.56rem",color:"#c08820",flex:1,textAlign:"right",letterSpacing:1}}>SNIT</span>}
+              </div>
+
+              {/* Rows */}
+              {[...Array(10)].map((_,i) => {
+                const isLast = i===9;
+                return (
+                  <div key={i}>
+                    <SplitRow label={SEG_LABELS[i]} raceData={raceData} avgData={avgData}
+                      getValue={d=>d.sp[i]} dist={SEG_DISTS[i]}
+                      bg={isLast?"rgba(26,111,196,0.06)":"transparent"} bold={isLast}/>
+                    {i === 4 && <>
+                      <SplitRow label="½ Marathon (21.095 km)" raceData={raceData} avgData={avgData}
+                        getValue={d=>d.half} dist={21.095}
+                        bg="rgba(26,111,196,0.08)" bold={true} accent={true}/>
+                      <SplitRow label="20–25 km (samlet)" raceData={raceData} avgData={avgData}
+                        getValue={d=>d.seg2025} dist={5}
+                        bg="rgba(26,111,196,0.03)"/>
+                    </>}
+                  </div>
+                );
+              })}
+              <SplitRow label="TOTAL" raceData={raceData} avgData={avgData}
+                getValue={d=>d.total} dist={42.195}
+                bg="rgba(26,111,196,0.1)" bold={true}/>
+            </div>
+
+            {/* Chart + compare */}
+            <div>
+              <div style={{...panelStyle, marginBottom:18}}>
+                <div style={h3Style}>Tempo pr. segment (sek/km)</div>
+                <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.58rem",color:"#6a87a8",marginBottom:10}}>Lav søjle = hurtigt tempo. Hover for detaljer.</div>
+                <BarChart raceData={raceData} avgData={avgData}/>
+                {/* Legend */}
+                <div style={{display:"flex",flexWrap:"wrap",gap:8,marginTop:14}}>
+                  {raceData.map((d,i)=>(
+                    <span key={d.r.id} style={{display:"flex",alignItems:"center",gap:4,fontFamily:"'DM Mono',monospace",fontSize:"0.58rem"}}>
+                      <span style={{display:"inline-block",width:9,height:9,background:RACE_COLORS[i%RACE_COLORS.length]}}/>
+                      {d.r.name} {d.r.date?new Date(d.r.date).getFullYear():""}
+                    </span>
+                  ))}
+                  {avgData && <span style={{display:"flex",alignItems:"center",gap:4,fontFamily:"'DM Mono',monospace",fontSize:"0.58rem"}}><span style={{display:"inline-block",width:9,height:9,background:"#c08820",outline:"1px dashed #c08820"}}/>Gennemsnit</span>}
+                </div>
+              </div>
+
+              {/* Compare table */}
+              {selRaces.length >= 2 && (
+                <div style={panelStyle}>
+                  <div style={h3Style}>Sammenligning</div>
+                  <CompareTable raceData={raceData} avgData={avgData}/>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function SplitRow({ label, raceData, avgData, getValue, dist, bg="transparent", bold=false, accent=false }) {
+  const vals = raceData.map(d => getValue(d));
+  const nonNull = vals.filter(v=>v!=null);
+  const best = nonNull.length > 1 ? Math.min(...nonNull) : null;
+  return (
+    <div style={{display:"flex",gap:2,padding:"7px 0",borderBottom:"1px solid #e8f2fb",background:bg,fontFamily:"'DM Mono',monospace",fontSize:"0.72rem",fontWeight:bold?"600":"400"}}>
+      <span style={{flex:"0 0 110px",color:accent?"#1a6fc4":"#6a87a8",fontSize:"0.65rem",display:"flex",alignItems:"center"}}>{label}</span>
+      {raceData.map((d,i)=>{
+        const v = getValue(d);
+        const isBest = best && v === best;
+        return (
+          <span key={d.r.id} style={{flex:1,textAlign:"right",color:isBest?"#1a8c50":RACE_COLORS[i%RACE_COLORS.length]}}>
+            {s2t(v)}<br/>
+            <span style={{fontSize:"0.58rem",color:"#6a87a8"}}>{paceFmt(dist,v)}</span>
+          </span>
+        );
+      })}
+      {avgData && (()=>{
+        const v = getValue(avgData);
+        return <span style={{flex:1,textAlign:"right",color:"#c08820"}}>{s2t(v)}<br/><span style={{fontSize:"0.58rem",color:"#6a87a8"}}>{paceFmt(dist,v)}</span></span>;
+      })()}
+    </div>
+  );
+}
+
+function BarChart({ raceData, avgData }) {
+  const [hovered, setHovered] = useState(null);
+
+  const allPaces = [];
+  raceData.forEach(d => {
+    SEG_DISTS.forEach((_,i) => { if(d.sp[i]) allPaces.push(d.sp[i]/SEG_DISTS[i]); });
+  });
+  if (!allPaces.length) return <div style={{color:"#6a87a8",fontFamily:"'DM Mono',monospace",fontSize:"0.7rem",padding:20}}>Ingen splits tilgængelige</div>;
+
+  const maxP = Math.max(...allPaces) * 1.05;
+  const minP = Math.min(...allPaces) * 0.95;
+  const H = 180;
+
+  return (
+    <div style={{position:"relative"}}>
+      {hovered && (
+        <div style={{position:"absolute",top:-28,left:hovered.x,transform:"translateX(-50%)",background:"#fff",border:"1px solid #1a6fc4",padding:"3px 8px",fontFamily:"'DM Mono',monospace",fontSize:"0.6rem",whiteSpace:"nowrap",zIndex:10,pointerEvents:"none",boxShadow:"0 2px 8px rgba(26,111,196,.15)"}}>
+          {hovered.text}
+        </div>
+      )}
+      <div style={{display:"flex",alignItems:"flex-end",gap:3,height:H,paddingBottom:22,borderBottom:"1px solid #ccddf0",position:"relative"}}>
+        {SEG_DISTS.map((_,i) => (
+          <div key={i} style={{flex:1,display:"flex",alignItems:"flex-end",gap:1,height:"100%",position:"relative",justifyContent:"center"}}>
+            {raceData.map((d,ri) => {
+              const s = d.sp[i];
+              const p = s ? s/SEG_DISTS[i] : null;
+              const pct = p ? Math.max(4, Math.round(((p-minP)/(maxP-minP))*82+10)) : 4;
+              return (
+                <div key={ri} style={{flex:1,height:`${pct}%`,background:RACE_COLORS[ri%RACE_COLORS.length],opacity:0.72,minHeight:3,cursor:"default",transition:"opacity .15s"}}
+                  onMouseEnter={e=>{ const rect=e.target.closest(".bar-chart-wrap")?.getBoundingClientRect(); setHovered({text:`${d.r.name}: ${s2t(s)} (${paceFmt(SEG_DISTS[i],s)})`,x:e.currentTarget.parentElement.offsetLeft+10}); }}
+                  onMouseLeave={()=>setHovered(null)}/>
+              );
+            })}
+            {avgData && (()=>{
+              const s=avgData.sp[i]; const p=s?s/SEG_DISTS[i]:null;
+              const pct=p?Math.max(4,Math.round(((p-minP)/(maxP-minP))*82+10)):4;
+              return <div style={{flex:1,height:`${pct}%`,background:"#c08820",opacity:0.55,minHeight:3,border:"1px dashed #c08820",cursor:"default"}}/>;
+            })()}
+            <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.42rem",color:"#6a87a8",writingMode:"vertical-rl",transform:"rotate(180deg)",position:"absolute",bottom:-20,whiteSpace:"nowrap"}}>{SEG_SHORT[i]}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CompareTable({ raceData, avgData }) {
+  const segs = [...SEG_LABELS, "½ Marathon", "20–25 km", "TOTAL"];
+  const getVal = (d, si) => {
+    if (si < 10) return d.sp ? d.sp[si] : null;
+    if (si === 10) return d.half;
+    if (si === 11) return d.seg2025;
+    return d.total;
+  };
+  const th = {padding:"6px 9px",fontFamily:"'DM Mono',monospace",fontSize:"0.57rem",letterSpacing:"1.5px",color:"#6a87a8",textTransform:"uppercase",textAlign:"right",borderBottom:"1px solid #1a6fc4",whiteSpace:"nowrap"};
+  const td = {padding:"7px 9px",fontFamily:"'DM Mono',monospace",fontSize:"0.7rem",textAlign:"right",borderBottom:"1px solid #e8f2fb",whiteSpace:"nowrap"};
+  return (
+    <div style={{overflowX:"auto"}}>
+      <table style={{width:"100%",borderCollapse:"collapse"}}>
+        <thead>
+          <tr>
+            <th style={{...th,textAlign:"left"}}>Segment</th>
+            {raceData.map((d,i)=><th key={d.r.id} style={{...th,color:RACE_COLORS[i%RACE_COLORS.length]}}>{d.r.name.substring(0,10)} '{d.r.date?String(new Date(d.r.date).getFullYear()).slice(2):"?"}</th>)}
+            {avgData && <th style={{...th,color:"#c08820"}}>Snit</th>}
+            <th style={th}>Forskel</th>
+          </tr>
+        </thead>
+        <tbody>
+          {segs.map((lbl,si)=>{
+            const vals = raceData.map(d=>getVal(d,si));
+            const nonNull = vals.filter(v=>v!=null);
+            const best = nonNull.length>1?Math.min(...nonNull):null;
+            const worst = nonNull.length>1?Math.max(...nonNull):null;
+            const diff = best!=null&&worst!=null?worst-best:null;
+            return (
+              <tr key={lbl}>
+                <td style={{...td,textAlign:"left",color:"#6a87a8",fontSize:"0.65rem"}}>{lbl}</td>
+                {vals.map((v,i)=>{
+                  const isBest=v===best&&raceData.length>1; const isWorst=v===worst&&raceData.length>1;
+                  return <td key={i} style={{...td,color:isBest?"#1a8c50":isWorst?"#d03030":RACE_COLORS[i%RACE_COLORS.length]}}>{s2t(v)}</td>;
+                })}
+                {avgData && <td style={{...td,color:"#c08820"}}>{s2t(getVal(avgData,si))}</td>}
+                <td style={{...td,color:"#6a87a8"}}>{diff!=null?`+${s2t(diff)}`:"–"}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ─── LOGIN ───────────────────────────────────────────────────
+function Login({ onLogin }) {
+  const [tab, setTab] = useState("login");
+  const [liUser,setLiUser]=useState(""); const [liPass,setLiPass]=useState(""); const [liErr,setLiErr]=useState("");
+  const [rUser,setRUser]=useState(""); const [rPass,setRPass]=useState(""); const [rPass2,setRPass2]=useState(""); const [rErr,setRErr]=useState("");
+
+  const inp = { background:"#f2f7fc", border:"1px solid #ccddf0", color:"#152235", padding:"10px 13px", fontFamily:"'DM Mono',monospace", fontSize:"0.82rem", width:"100%", outline:"none", marginTop:4, display:"block" };
+  const lbl = { fontFamily:"'DM Mono',monospace", fontSize:"0.6rem", letterSpacing:"1.5px", color:"#6a87a8", textTransform:"uppercase" };
+
+  function doLogin() {
+    const users = DB.getUsers();
+    if (!liUser.trim()||!liPass) { setLiErr("Udfyld begge felter"); return; }
+    if (!users[liUser]||users[liUser]!==btoa(liPass)) { setLiErr("Forkert brugernavn eller adgangskode"); return; }
+    DB.setSession(liUser); onLogin(liUser);
+  }
+  function doRegister() {
+    if (!rUser.trim()||!rPass) { setRErr("Udfyld alle felter"); return; }
+    if (rPass.length<4) { setRErr("Adgangskode skal være mindst 4 tegn"); return; }
+    if (rPass!==rPass2) { setRErr("Adgangskoderne matcher ikke"); return; }
+    const users = DB.getUsers();
+    if (users[rUser]) { setRErr("Brugernavnet er allerede taget"); return; }
+    users[rUser]=btoa(rPass); DB.saveUsers(users); DB.setSession(rUser); onLogin(rUser);
+  }
+
+  return (
+    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"linear-gradient(135deg,#e0eefc,#f2f7fc,#d4e8f8)"}}>
+      <div style={{background:"#fff",border:"1px solid #ccddf0",padding:"48px 44px",width:400,maxWidth:"95vw",boxShadow:"0 16px 48px rgba(26,111,196,.12)"}}>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2.8rem",letterSpacing:5,color:"#1a6fc4",textAlign:"center"}}>Marathon<span style={{color:"#152235"}}>Log</span></div>
+        <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",letterSpacing:2,color:"#6a87a8",textAlign:"center",marginBottom:36}}>TRACK · ANALYSE · IMPROVE</div>
+
+        <div style={{display:"flex",borderBottom:"2px solid #ccddf0",marginBottom:24}}>
+          {["login","register"].map(t=>(
+            <button key={t} onClick={()=>setTab(t)} style={{flex:1,fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",letterSpacing:"1.5px",textTransform:"uppercase",padding:"9px",background:"transparent",border:"none",borderBottom:`2px solid ${tab===t?"#1a6fc4":"transparent"}`,color:tab===t?"#1a6fc4":"#6a87a8",cursor:"pointer",marginBottom:-2}}>
+              {t==="login"?"Log ind":"Opret konto"}
+            </button>
+          ))}
+        </div>
+
+        {tab==="login" ? (
+          <div>
+            <div style={{marginBottom:12}}><label style={lbl}>Brugernavn</label><input style={inp} value={liUser} onChange={e=>setLiUser(e.target.value)} placeholder="dit brugernavn" onKeyDown={e=>e.key==="Enter"&&doLogin()}/></div>
+            <div style={{marginBottom:16}}><label style={lbl}>Adgangskode</label><input type="password" style={inp} value={liPass} onChange={e=>setLiPass(e.target.value)} placeholder="••••••••" onKeyDown={e=>e.key==="Enter"&&doLogin()}/></div>
+            <button onClick={doLogin} style={{width:"100%",fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.1rem",letterSpacing:3,padding:13,background:"#1a6fc4",color:"#fff",border:"none",cursor:"pointer"}}>LOG IND</button>
+            {liErr && <div style={{color:"#d03030",fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",marginTop:10,textAlign:"center"}}>{liErr}</div>}
+          </div>
+        ) : (
+          <div>
+            <div style={{marginBottom:12}}><label style={lbl}>Brugernavn</label><input style={inp} value={rUser} onChange={e=>setRUser(e.target.value)} placeholder="vælg brugernavn"/></div>
+            <div style={{marginBottom:12}}><label style={lbl}>Adgangskode</label><input type="password" style={inp} value={rPass} onChange={e=>setRPass(e.target.value)} placeholder="mindst 4 tegn"/></div>
+            <div style={{marginBottom:16}}><label style={lbl}>Bekræft adgangskode</label><input type="password" style={inp} value={rPass2} onChange={e=>setRPass2(e.target.value)} placeholder="gentag adgangskode"/></div>
+            <button onClick={doRegister} style={{width:"100%",fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.1rem",letterSpacing:3,padding:13,background:"#1a6fc4",color:"#fff",border:"none",cursor:"pointer"}}>OPRET KONTO</button>
+            {rErr && <div style={{color:"#d03030",fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",marginTop:10,textAlign:"center"}}>{rErr}</div>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── DELETE CONFIRM ──────────────────────────────────────────
+function DeleteModal({ race, onConfirm, onClose }) {
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(100,150,200,0.45)",backdropFilter:"blur(4px)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center"}} onClick={e=>{if(e.target===e.currentTarget)onClose()}}>
+      <div style={{background:"#fff",border:"1px solid #d03030",padding:"32px 36px",width:360,maxWidth:"95vw",boxShadow:"0 16px 48px rgba(200,50,50,.12)"}}>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.7rem",letterSpacing:3,color:"#d03030",marginBottom:12}}>Slet Løb</div>
+        <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:"0.88rem",color:"#6a87a8",marginBottom:24}}>Er du sikker på at du vil slette <strong style={{color:"#152235"}}>{race?.name}</strong>? Dette kan ikke fortrydes.</p>
+        <div style={{display:"flex",gap:8}}>
+          <button onClick={onClose} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.7rem",padding:"10px 18px",border:"1px solid #ccddf0",background:"transparent",color:"#6a87a8",cursor:"pointer"}}>Annuller</button>
+          <button onClick={onConfirm} style={{flex:1,fontFamily:"'Bebas Neue',sans-serif",fontSize:"1rem",letterSpacing:3,padding:12,background:"#d03030",color:"#fff",border:"none",cursor:"pointer"}}>SLET</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── APP ─────────────────────────────────────────────────────
+function App() {
+  const [user, setUser] = useState(() => {
+    const s = DB.getSession();
+    if (s && DB.getUsers()[s]) return s;
+    return null;
+  });
+  const [races, setRaces] = useState(() => user ? DB.getRaces(user) : []);
+  const [tab, setTab] = useState("map");
+  const [raceModal, setRaceModal] = useState(null); // null | "add" | race obj
+  const [deleteModal, setDeleteModal] = useState(null);
+
+  useEffect(() => { if (user) setRaces(DB.getRaces(user)); }, [user]);
+
+  const saveRaces = useCallback((newRaces) => {
+    setRaces(newRaces);
+    if (user) DB.saveRaces(user, newRaces);
+  }, [user]);
+
+  function handleLogin(u) { setUser(u); setRaces(DB.getRaces(u)); }
+  function handleLogout() { DB.clearSession(); setUser(null); setRaces([]); setTab("map"); }
+
+  function handleSaveRace(race) {
+    const existing = races.find(r=>r.id===race.id);
+    saveRaces(existing ? races.map(r=>r.id===race.id?race:r) : [...races, race]);
+    setRaceModal(null);
+  }
+  function handleDeleteRace() {
+    if (deleteModal) { saveRaces(races.filter(r=>r.id!==deleteModal.id)); setDeleteModal(null); }
+  }
+
+  const TABS = [
+    {id:"map",label:"🌍 Verdenskort"},
+    {id:"majors",label:"⭐ Majors"},
+    {id:"races",label:"📋 Løb"},
+    {id:"splits",label:"📊 Statistik"},
+  ];
+
+  const bg = "#f2f7fc";
+  const pad = {padding:"32px 36px"};
+
+  if (!user) return <Login onLogin={handleLogin}/>;
+
+  return (
+    <div style={{minHeight:"100vh",background:bg,fontFamily:"'DM Sans',sans-serif",color:"#152235"}}>
+      {/* Header */}
+      <header style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 32px",borderBottom:"1px solid #ccddf0",position:"sticky",top:0,background:"rgba(242,247,252,0.97)",backdropFilter:"blur(12px)",zIndex:100,boxShadow:"0 2px 12px rgba(26,111,196,.07)",flexWrap:"wrap",gap:10}}>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.7rem",letterSpacing:4,color:"#1a6fc4"}}>Marathon<span style={{color:"#152235"}}>Log</span></div>
+        <nav style={{display:"flex",gap:3}}>
+          {TABS.map(t=>(
+            <button key={t.id} onClick={()=>setTab(t.id)} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",letterSpacing:"1.5px",textTransform:"uppercase",padding:"7px 13px",background:tab===t.id?"#1a6fc4":"transparent",border:`1px solid ${tab===t.id?"#1a6fc4":"#ccddf0"}`,color:tab===t.id?"#fff":"#6a87a8",cursor:"pointer",whiteSpace:"nowrap"}}>
+              {t.label}
+            </button>
+          ))}
+        </nav>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <span style={{fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",color:"#6a87a8"}}>Logget ind som <strong style={{color:"#1a6fc4"}}>{user}</strong></span>
+          <button onClick={handleLogout} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.63rem",padding:"5px 11px",border:"1px solid #ccddf0",background:"transparent",color:"#6a87a8",cursor:"pointer"}}>Log ud</button>
+        </div>
+      </header>
+
+      <main style={{...pad}}>
+        {tab==="map" && (
+          <div>
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2.6rem",letterSpacing:3,marginBottom:22}}>Mine <span style={{color:"#1a6fc4"}}>Løbelande</span></div>
+            <WorldMap races={races}/>
+          </div>
+        )}
+        {tab==="majors" && (
+          <div>
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2.6rem",letterSpacing:3,marginBottom:22}}>World Marathon <span style={{color:"#1a6fc4"}}>Majors</span></div>
+            <MajorsView races={races}/>
+          </div>
+        )}
+        {tab==="races" && (
+          <RacesView races={races} onAdd={()=>setRaceModal("add")} onEdit={r=>setRaceModal(r)} onDelete={r=>setDeleteModal(r)}/>
+        )}
+        {tab==="splits" && (
+          <div>
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2.6rem",letterSpacing:3,marginBottom:22}}>Tider & <span style={{color:"#1a6fc4"}}>Statistik</span></div>
+            <StatsView races={races}/>
+          </div>
+        )}
+      </main>
+
+      {(raceModal==="add"||typeof raceModal==="object"&&raceModal!==null) && (
+        <RaceModal race={raceModal==="add"?null:raceModal} onSave={handleSaveRace} onClose={()=>setRaceModal(null)}/>
+      )}
+      {deleteModal && <DeleteModal race={deleteModal} onConfirm={handleDeleteRace} onClose={()=>setDeleteModal(null)}/>}
+    </div>
+  );
+}
+
+// ─── RENDER ──────────────────────────────────────────────────
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
+
+// Remove splash once rendered
+setTimeout(() => {
+  const s = document.getElementById("splash");
+  if (s) { s.style.opacity = "0"; s.style.transition = "opacity .3s"; setTimeout(()=>s.remove(), 300); }
+}, 400);
+</script>
+
+<script>
+// ─── PWA: register service worker ───
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(err => console.log("SW registration failed:", err));
+  });
+}
+
+// ─── PWA: install prompt ───
+let deferredPrompt = null;
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Don't show if already dismissed this session
+  if (sessionStorage.getItem("ml_install_dismissed")) return;
+  showInstallBanner();
+});
+
+function showInstallBanner() {
+  if (document.getElementById("install-banner")) return;
+  const banner = document.createElement("div");
+  banner.id = "install-banner";
+  banner.className = "install-banner";
+  banner.innerHTML = `
+    <span style="font-size:0.85rem">📲 Installer MarathonLog på din enhed</span>
+    <span style="display:flex;gap:8px">
+      <button class="no" id="ml-install-no">Senere</button>
+      <button class="yes" id="ml-install-yes">Installer</button>
+    </span>`;
+  document.body.appendChild(banner);
+  document.getElementById("ml-install-yes").onclick = async () => {
+    banner.remove();
+    if (deferredPrompt) { deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; }
+  };
+  document.getElementById("ml-install-no").onclick = () => {
+    banner.remove();
+    sessionStorage.setItem("ml_install_dismissed", "1");
+  };
+}
+</script>
+</body>
+</html>
