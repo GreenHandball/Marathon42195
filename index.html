@@ -6,34 +6,47 @@
 <meta name="theme-color" content="#1a6fc4">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="MarathonLog">
+<meta name="apple-mobile-web-app-title" content="Running The World">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="./manifest.json">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='80' fill='%231a6fc4'/%3E%3Ctext x='256' y='360' text-anchor='middle' font-size='300'%3E🏃%3C/text%3E%3C/svg%3E">
-<title>MarathonLog</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%231a6fc4'/%3E%3Ccircle cx='256' cy='256' r='150' fill='none' stroke='white' stroke-width='20'/%3E%3Cellipse cx='256' cy='256' rx='62' ry='150' fill='none' stroke='white' stroke-width='12' opacity='0.6'/%3E%3Cline x1='106' y1='256' x2='406' y2='256' stroke='white' stroke-width='12' opacity='0.6'/%3E%3Ccircle cx='310' cy='180' r='30' fill='%23f0c040'/%3E%3C/svg%3E">
+<title>Running The World</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  * { -webkit-tap-highlight-color: transparent; }
+  * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
   html, body { margin:0; padding:0; background:#f2f7fc; overscroll-behavior-y:none; }
   body { font-family:'DM Sans',sans-serif; -webkit-font-smoothing:antialiased; }
-  input, select, button, textarea { font-size:16px; } /* prevent iOS zoom on focus */
+  input, select, textarea { font-size:16px; }
   #root { min-height:100vh; }
-  /* Loading splash */
-  #splash { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg,#e0eefc,#f2f7fc,#d4e8f8); z-index:9999; }
-  #splash .logo { font-family:'Bebas Neue',sans-serif; font-size:3rem; letter-spacing:5px; color:#1a6fc4; }
-  #splash .sub { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:2px; color:#6a87a8; margin-top:4px; }
-  #splash .spinner { margin-top:24px; width:32px; height:32px; border:3px solid #ccddf0; border-top-color:#1a6fc4; border-radius:50%; animation:spin 0.8s linear infinite; }
+  ::-webkit-scrollbar { width:0; height:0; }
+  #splash { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg,#e0eefc,#f2f7fc,#d4e8f8); z-index:9999; gap:20px; }
+  #splash .spinner { width:34px; height:34px; border:3px solid #ccddf0; border-top-color:#1a6fc4; border-radius:50%; animation:spin 0.8s linear infinite; }
   @keyframes spin { to { transform:rotate(360deg); } }
-  .install-banner { position:fixed; bottom:0; left:0; right:0; background:#1a6fc4; color:#fff; padding:14px 18px; display:flex; align-items:center; justify-content:space-between; gap:12px; z-index:500; font-family:'DM Sans',sans-serif; box-shadow:0 -4px 16px rgba(26,111,196,.25); }
-  .install-banner button { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:1px; padding:8px 16px; border:none; cursor:pointer; }
-  .install-banner .yes { background:#fff; color:#1a6fc4; }
-  .install-banner .no { background:transparent; color:#fff; border:1px solid rgba(255,255,255,.4); }
 </style>
 </head>
 <body>
 <div id="splash">
-  <div class="logo">Marathon<span style="color:#152235">Log</span></div>
-  <div class="sub">TRACK · ANALYSE · IMPROVE</div>
+  <svg width="72" height="72" viewBox="0 0 48 48">
+    <circle cx="24" cy="24" r="22" fill="none" stroke="#1a6fc4" stroke-width="2.5"/>
+    <ellipse cx="24" cy="24" rx="9" ry="22" fill="none" stroke="#1a6fc4" stroke-width="1.3" opacity="0.55"/>
+    <line x1="2" y1="24" x2="46" y2="24" stroke="#1a6fc4" stroke-width="1.3" opacity="0.55"/>
+    <circle cx="32" cy="14" r="4.2" fill="#c08820"/>
+  </svg>
+  <div style="text-align:center;line-height:0.95">
+    <div style="display:flex;align-items:flex-end;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:4px;color:#152235">
+      <span>RUNN</span>
+      <svg viewBox="0 0 20 34" style="height:1.8rem;width:1.05rem;margin:0 3px;display:block;transform:translateY(1px)">
+        <circle cx="11" cy="5" r="4" fill="#c08820"/>
+        <path d="M11 9 L8.5 19" stroke="#c08820" stroke-width="3" stroke-linecap="round"/>
+        <path d="M10 12 L16 11" stroke="#c08820" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M9.5 12 L4 14 L6 18" stroke="#c08820" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <path d="M8.5 19 L14 24 L13 31" stroke="#c08820" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <path d="M8.5 19 L4 26 L1 30" stroke="#c08820" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>
+      <span>NG</span>
+    </div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:2px;color:#1a6fc4">THE WORLD</div>
+  </div>
   <div class="spinner"></div>
 </div>
 <div id="root"></div>
@@ -44,7 +57,6 @@
 
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useRef, useCallback } = React;
-
 
 // ─── CONSTANTS ───────────────────────────────────────────────
 const MAJORS = [
@@ -59,62 +71,85 @@ const MAJORS = [
   { name: "Shanghai Marathon",       flag: "🇨🇳", city: "Shanghai, Kina" },
 ];
 
-const SEG_LABELS = [
-  "0–5 km","5–10 km","10–15 km","15–20 km",
-  "20–21.095 km","21.095–25 km","25–30 km","30–35 km","35–40 km","40–42.195 km"
+// Checkpoints where the user enters CUMULATIVE time (what the watch shows)
+// label, distance(km)
+const CHECKPOINTS = [
+  { label: "5 km",        dist: 5 },
+  { label: "10 km",       dist: 10 },
+  { label: "15 km",       dist: 15 },
+  { label: "20 km",       dist: 20 },
+  { label: "Halvmaraton", dist: 21.0975 },
+  { label: "25 km",       dist: 25 },
+  { label: "30 km",       dist: 30 },
+  { label: "35 km",       dist: 35 },
+  { label: "40 km",       dist: 40 },
+  { label: "Mål (42.195)", dist: 42.195 },
 ];
-const SEG_DISTS = [5, 5, 5, 5, 1.095, 3.905, 5, 5, 5, 2.195];
-const SEG_SHORT = ["0-5","5-10","10-15","15-20","20-½","½-25","25-30","30-35","35-40","40-fin"];
+
+// Segments derived between checkpoints (for splits & ranking)
+// from-index in CHECKPOINTS (or -1 = start), to-index
+const SEGMENTS = [
+  { label: "0–5 km",        from: -1, to: 0, dist: 5 },
+  { label: "5–10 km",       from: 0,  to: 1, dist: 5 },
+  { label: "10–15 km",      from: 1,  to: 2, dist: 5 },
+  { label: "15–20 km",      from: 2,  to: 3, dist: 5 },
+  { label: "20–½",          from: 3,  to: 4, dist: 1.0975 },
+  { label: "½–25 km",       from: 4,  to: 5, dist: 3.9025 },
+  { label: "25–30 km",      from: 5,  to: 6, dist: 5 },
+  { label: "30–35 km",      from: 6,  to: 7, dist: 5 },
+  { label: "35–40 km",      from: 7,  to: 8, dist: 5 },
+  { label: "Spurt 40–mål",  from: 8,  to: 9, dist: 2.195 },
+];
+
 const RACE_COLORS = ["#1a6fc4","#c040d0","#1a8c50","#c08820","#d03030","#0d8888"];
 
-// Country name → ISO numeric (world-atlas countries-110m)
-const COUNTRY_ISO = {
-  "Danmark":208,"Sverige":752,"Norge":578,"Finland":246,"Island":352,
-  "England":826,"Skotland":826,"Wales":826,"Nordirland":826,"UK":826,
-  "Irland":372,"Frankrig":250,"Spanien":724,"Portugal":620,"Italien":380,
-  "Grækenland":300,"Nederlandene":528,"Holland":528,"Belgien":56,
-  "Schweiz":756,"Østrig":40,"Tyskland":276,"Polen":616,"Tjekkiet":203,
-  "Ungarn":348,"Kroatien":191,"Serbien":688,"Rumænien":642,"Ukraine":804,
-  "Rusland":643,"Tyrkiet":792,"Israel":376,"Egypten":818,"Marokko":504,
-  "Sydafrika":710,"Kenya":404,"Nigeria":566,"Etiopien":231,"Tanzania":834,
-  "Uganda":800,"Ghana":288,"Cameroun":120,"Mozambique":508,"Angola":24,
-  "Japan":392,"Kina":156,"Sydkorea":410,"Taiwan":158,"Indien":356,
-  "Pakistan":586,"Bangladesh":50,"Thailand":764,"Vietnam":704,
-  "Filippinerne":608,"Indonesien":360,"Malaysia":458,"Singapore":702,
-  "Australien":36,"New Zealand":554,"Canada":124,"USA":840,"Mexico":484,
-  "Brasilien":76,"Argentina":32,"Colombia":170,"Chile":152,"Peru":604,
-  "Venezuela":862,"Bolivia":68,"Paraguay":600,"Uruguay":858,"Ecuador":218,
-  "Saudi-Arabien":682,"UAE":784,"Qatar":634,"Iran":364,"Irak":368,
-  "Kasakhstan":398,"Usbekistan":860,"Hviderusland":112,"Letland":428,
-  "Litauen":440,"Estland":233,"Slovakiet":703,"Slovenien":705,"Bulgarien":100,
-  "Albanien":8,"Bosnien":70,"Montenegro":499,"Nordmakedonien":807,
-  "Tunesien":788,"Algeriet":12,"Libyen":434,"Sudan":729,"Sydsudan":728,
-  "Senegal":686,"Mali":466,"Niger":562,"Chad":148,"Somalia":706,
-  "Namibia":516,"Botswana":72,"Zimbabwe":716,"Zambia":894,"Malawi":454,
-  "Rwanda":646,"Burundi":108,"Congo DR":180,"Mongoliet":496,"Myanmar":104,
-  "Sri Lanka":144,"Nepal":524,"Afghanistan":4,"Jordan":400,"Libanon":422,
-  "Syrien":760,"Armenien":51,"Georgien":268,"Aserbajdsjan":31,
-};
+// Countries with flag + ISO numeric for the map
+const COUNTRIES = [
+  ["Danmark","🇩🇰",208],["Sverige","🇸🇪",752],["Norge","🇳🇴",578],["Finland","🇫🇮",246],
+  ["Island","🇮🇸",352],["England","🇬🇧",826],["Skotland","🏴",826],["Wales","🏴",826],
+  ["Nordirland","🇬🇧",826],["Irland","🇮🇪",372],["Frankrig","🇫🇷",250],["Spanien","🇪🇸",724],
+  ["Portugal","🇵🇹",620],["Italien","🇮🇹",380],["Grækenland","🇬🇷",300],["Nederlandene","🇳🇱",528],
+  ["Belgien","🇧🇪",56],["Schweiz","🇨🇭",756],["Østrig","🇦🇹",40],["Tyskland","🇩🇪",276],
+  ["Polen","🇵🇱",616],["Tjekkiet","🇨🇿",203],["Ungarn","🇭🇺",348],["Kroatien","🇭🇷",191],
+  ["Serbien","🇷🇸",688],["Rumænien","🇷🇴",642],["Bulgarien","🇧🇬",100],["Ukraine","🇺🇦",804],
+  ["Rusland","🇷🇺",643],["Tyrkiet","🇹🇷",792],["Estland","🇪🇪",233],["Letland","🇱🇻",428],
+  ["Litauen","🇱🇹",440],["Slovakiet","🇸🇰",703],["Slovenien","🇸🇮",705],["Luxembourg","🇱🇺",442],
+  ["Israel","🇮🇱",376],["Egypten","🇪🇬",818],["Marokko","🇲🇦",504],["Tunesien","🇹🇳",788],
+  ["Sydafrika","🇿🇦",710],["Kenya","🇰🇪",404],["Etiopien","🇪🇹",231],["Tanzania","🇹🇿",834],
+  ["Nigeria","🇳🇬",566],["Ghana","🇬🇭",288],["Namibia","🇳🇦",516],["Japan","🇯🇵",392],
+  ["Kina","🇨🇳",156],["Sydkorea","🇰🇷",410],["Taiwan","🇹🇼",158],["Indien","🇮🇳",356],
+  ["Thailand","🇹🇭",764],["Vietnam","🇻🇳",704],["Singapore","🇸🇬",702],["Malaysia","🇲🇾",458],
+  ["Indonesien","🇮🇩",360],["Filippinerne","🇵🇭",608],["Australien","🇦🇺",36],["New Zealand","🇳🇿",554],
+  ["Canada","🇨🇦",124],["USA","🇺🇸",840],["Mexico","🇲🇽",484],["Brasilien","🇧🇷",76],
+  ["Argentina","🇦🇷",32],["Chile","🇨🇱",152],["Peru","🇵🇪",604],["Colombia","🇨🇴",170],
+  ["Uruguay","🇺🇾",858],["Forenede Arabiske Emirater","🇦🇪",784],["Saudi-Arabien","🇸🇦",682],
+  ["Qatar","🇶🇦",634],["Jordan","🇯🇴",400],
+].sort((a,b)=>a[0].localeCompare(b[0],"da"));
+
+const COUNTRY_ISO = {};
+COUNTRIES.forEach(([name,flag,iso]) => COUNTRY_ISO[name] = iso);
+const COUNTRY_FLAG = {};
+COUNTRIES.forEach(([name,flag]) => COUNTRY_FLAG[name] = flag);
 
 // ─── UTILS ───────────────────────────────────────────────────
 function t2s(t) {
   if (!t || !t.trim()) return null;
   const p = t.trim().split(":").map(Number);
   if (p.some(isNaN)) return null;
-  if (p.length === 3) return p[0] * 3600 + p[1] * 60 + p[2];
-  if (p.length === 2) return p[0] * 60 + p[1];
+  if (p.length === 3) return p[0]*3600 + p[1]*60 + p[2];
+  if (p.length === 2) return p[0]*60 + p[1];
   return null;
 }
 function s2t(s) {
   if (s == null || isNaN(s)) return "–";
   s = Math.round(s);
-  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sc = s % 60;
+  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sc = s%60;
   if (h > 0) return `${h}:${String(m).padStart(2,"0")}:${String(sc).padStart(2,"0")}`;
   return `${String(m).padStart(2,"0")}:${String(sc).padStart(2,"0")}`;
 }
 function paceFmt(dist, secs) {
   if (!secs || !dist) return "–";
-  return s2t(Math.round(secs / dist)) + "/km";
+  return s2t(Math.round(secs/dist)) + "/km";
 }
 function fmtDate(d) {
   if (!d) return "–";
@@ -122,30 +157,81 @@ function fmtDate(d) {
 }
 function uid() { return Date.now() + "_" + Math.random().toString(36).slice(2); }
 
-function computeRaceStats(splitsRaw) {
-  const sp = (splitsRaw || Array(10).fill("")).map(t2s);
-  const total = sp.filter(Boolean).length ? sp.filter(Boolean).reduce((a,b)=>a+b,0) : null;
-  const halfParts = sp.slice(0, 5);
-  const half = halfParts.every(s => s != null) ? halfParts.reduce((a,b)=>a+b,0) : null;
-  const seg2025 = (sp[4] != null && sp[5] != null) ? sp[4] + sp[5] : null;
-  return { sp, total, half, seg2025 };
+// Given cumulative checkpoint times (array of 10 raw strings),
+// compute: cumulative seconds array, segment seconds array, total, half
+function computeRace(checkpointsRaw) {
+  const cum = (checkpointsRaw || Array(10).fill("")).map(t2s); // cumulative secs at each checkpoint
+  const total = cum[9];
+  const half = cum[4];
+  // segment seconds
+  const segs = SEGMENTS.map(seg => {
+    const start = seg.from === -1 ? 0 : cum[seg.from];
+    const end = cum[seg.to];
+    if (start == null || end == null) return null;
+    return end - start;
+  });
+  return { cum, segs, total, half };
 }
 
-// ─── STORAGE ─────────────────────────────────────────────────
+// ─── STORAGE (single user, no login) ─────────────────────────
+const STORE_KEY = "rtw_races";
 const DB = {
-  getUsers: () => JSON.parse(localStorage.getItem("ml_users") || "{}"),
-  saveUsers: u => localStorage.setItem("ml_users", JSON.stringify(u)),
-  getRaces: user => JSON.parse(localStorage.getItem("ml_races_" + user) || "[]"),
-  saveRaces: (user, races) => localStorage.setItem("ml_races_" + user, JSON.stringify(races)),
-  getSession: () => localStorage.getItem("ml_session"),
-  setSession: u => localStorage.setItem("ml_session", u),
-  clearSession: () => localStorage.removeItem("ml_session"),
+  get: () => JSON.parse(localStorage.getItem(STORE_KEY) || "[]"),
+  save: (races) => localStorage.setItem(STORE_KEY, JSON.stringify(races)),
 };
+
+// ─── RUNNER GLYPH (replaces the "I" in RUNNING) ──────────────
+function RunnerGlyph({ size = 1 }) {
+  // Sized to sit like a capital letter on the baseline.
+  // Head (gold circle) acts as the dot; body is a running figure.
+  return (
+    <svg viewBox="0 0 20 34" style={{height:`${1.35*size}rem`,width:`${0.8*size}rem`,marginLeft:`${1.5*size}px`,marginRight:`${1.5*size}px`,display:"block",transform:"translateY(1px)"}}>
+      {/* head — doubles as the dot of the i */}
+      <circle cx="11" cy="5" r="4" fill="#c08820"/>
+      {/* torso */}
+      <path d="M11 9 L8.5 19" stroke="#c08820" strokeWidth="3" strokeLinecap="round"/>
+      {/* leading arm (forward) */}
+      <path d="M10 12 L16 11" stroke="#c08820" strokeWidth="2.6" strokeLinecap="round"/>
+      {/* trailing arm (back, bent) */}
+      <path d="M9.5 12 L4 14 L6 18" stroke="#c08820" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      {/* front leg (striding forward) */}
+      <path d="M8.5 19 L14 24 L13 31" stroke="#c08820" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      {/* back leg (pushing off) */}
+      <path d="M8.5 19 L4 26 L1 30" stroke="#c08820" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+    </svg>
+  );
+}
+
+// ─── BRAND LOGO ──────────────────────────────────────────────
+function BrandLogo({ size = 1 }) {
+  return (
+    <div style={{display:"flex",alignItems:"center",gap:10*size,userSelect:"none"}}>
+      <div style={{position:"relative",width:38*size,height:38*size,flexShrink:0}}>
+        <svg viewBox="0 0 48 48" style={{width:"100%",height:"100%"}}>
+          <circle cx="24" cy="24" r="22" fill="none" stroke="#1a6fc4" strokeWidth="2.5"/>
+          <ellipse cx="24" cy="24" rx="9" ry="22" fill="none" stroke="#1a6fc4" strokeWidth="1.3" opacity="0.55"/>
+          <line x1="2" y1="24" x2="46" y2="24" stroke="#1a6fc4" strokeWidth="1.3" opacity="0.55"/>
+          <line x1="5" y1="15" x2="43" y2="15" stroke="#1a6fc4" strokeWidth="1" opacity="0.4"/>
+          <line x1="5" y1="33" x2="43" y2="33" stroke="#1a6fc4" strokeWidth="1" opacity="0.4"/>
+          <circle cx="32" cy="14" r="4.2" fill="#c08820"/>
+        </svg>
+      </div>
+      <div style={{lineHeight:0.92}}>
+        <div style={{display:"flex",alignItems:"flex-end",fontFamily:"'Bebas Neue',sans-serif",fontSize:`${1.35*size}rem`,letterSpacing:`${2.5*size}px`,color:"#152235"}}>
+          <span>RUNN</span>
+          <RunnerGlyph size={size}/>
+          <span>NG</span>
+        </div>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:`${1.35*size}rem`,letterSpacing:`${1*size}px`,color:"#1a6fc4",marginTop:-2}}>THE&nbsp;WORLD</div>
+      </div>
+    </div>
+  );
+}
 
 // ─── WORLD MAP ───────────────────────────────────────────────
 function WorldMap({ races }) {
   const svgRef = useRef(null);
-  const [tooltip, setTooltip] = useState({ visible: false, text: "", x: 0, y: 0 });
+  const [tooltip, setTooltip] = useState({ visible:false, text:"", x:0, y:0 });
   const worldRef = useRef(null);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState(false);
@@ -165,27 +251,9 @@ function WorldMap({ races }) {
     let cancelled = false;
     async function load() {
       try {
-        // Load d3 + topojson + world data
-        if (!window.d3) {
-          await new Promise((res, rej) => {
-            const s = document.createElement("script");
-            s.src = "https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js";
-            s.onload = res; s.onerror = rej;
-            document.head.appendChild(s);
-          });
-        }
-        if (!window.topojson) {
-          await new Promise((res, rej) => {
-            const s = document.createElement("script");
-            s.src = "https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js";
-            s.onload = res; s.onerror = rej;
-            document.head.appendChild(s);
-          });
-        }
-        if (!window._worldGeo) {
-          const resp = await fetch("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json");
-          window._worldGeo = await resp.json();
-        }
+        if (!window.d3) await new Promise((res,rej)=>{const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js";s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+        if (!window.topojson) await new Promise((res,rej)=>{const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js";s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+        if (!window._worldGeo) { const resp = await fetch("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json"); window._worldGeo = await resp.json(); }
         if (!cancelled) { worldRef.current = window._worldGeo; setReady(true); }
       } catch(e) { if (!cancelled) setError(true); }
     }
@@ -201,85 +269,52 @@ function WorldMap({ races }) {
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
     svg.attr("viewBox", `0 0 ${W} ${H}`);
-
-    const proj = d3.geoNaturalEarth1().scale(150).translate([W/2, H/2]);
+    const proj = d3.geoNaturalEarth1().scale(150).translate([W/2,H/2]);
     const path = d3.geoPath().projection(proj);
-
-    // Ocean
-    svg.append("rect").attr("width", W).attr("height", H).attr("fill", "#b8d8f0");
-
-    // Graticule
+    svg.append("rect").attr("width",W).attr("height",H).attr("fill","#b8d8f0");
     const graticule = d3.geoGraticule()();
-    svg.append("path").datum(graticule).attr("d", path)
-      .attr("fill","none").attr("stroke","#a0c8e8").attr("stroke-width",0.3);
-
+    svg.append("path").datum(graticule).attr("d",path).attr("fill","none").attr("stroke","#a0c8e8").attr("stroke-width",0.3);
     const countries = topojson.feature(world, world.objects.countries);
-    const borders = topojson.mesh(world, world.objects.countries, (a,b) => a !== b);
-
-    svg.selectAll(".country")
-      .data(countries.features)
-      .enter().append("path")
-      .attr("class","country")
-      .attr("d", path)
+    const borders = topojson.mesh(world, world.objects.countries, (a,b)=>a!==b);
+    svg.selectAll(".country").data(countries.features).enter().append("path")
+      .attr("class","country").attr("d",path)
       .attr("fill", d => visitedCodes.has(+d.id) ? "#1a6fc4" : "#daeef8")
-      .attr("stroke", "#fff")
-      .attr("stroke-width", 0.3)
+      .attr("stroke","#fff").attr("stroke-width",0.3)
       .style("cursor", d => visitedCodes.has(+d.id) ? "pointer" : "default")
-      .on("mousemove", function(event, d) {
-        const code = +d.id;
-        const names = codeToNames[code] || [];
-        if (!names.length) return;
-        const cnt = races.filter(r => names.includes(r.country)).length;
+      .on("touchstart mousemove", function(event,d){
+        const code = +d.id; const names = codeToNames[code] || []; if(!names.length) return;
+        const cnt = races.filter(r=>names.includes(r.country)).length;
         const rect = svgRef.current.closest(".map-outer").getBoundingClientRect();
-        setTooltip({
-          visible: true,
-          text: `${names[0]} — ${cnt} løb`,
-          x: event.clientX - rect.left + 12,
-          y: event.clientY - rect.top + 12
-        });
+        const cx = (event.touches ? event.touches[0].clientX : event.clientX) - rect.left;
+        const cy = (event.touches ? event.touches[0].clientY : event.clientY) - rect.top;
+        setTooltip({ visible:true, text:`${names[0]} — ${cnt} løb`, x:cx+12, y:cy+12 });
       })
-      .on("mouseleave", () => setTooltip(t => ({...t, visible: false})));
-
-    svg.append("path").datum(borders).attr("d", path)
-      .attr("fill","none").attr("stroke","#fff").attr("stroke-width",0.5);
-
+      .on("mouseleave touchend", ()=>setTooltip(t=>({...t,visible:false})));
+    svg.append("path").datum(borders).attr("d",path).attr("fill","none").attr("stroke","#fff").attr("stroke-width",0.5);
   }, [ready, races]);
 
-  const visited = new Set(races.map(r => r.country).filter(Boolean));
+  const visited = new Set(races.map(r=>r.country).filter(Boolean));
 
   return (
     <div>
-      <div style={{display:"flex",gap:28,marginBottom:20,flexWrap:"wrap"}}>
-        {[
-          { val: visited.size, lbl: "Lande" },
-          { val: races.length, lbl: "Løb i alt" },
-        ].map(s => (
+      <div style={{display:"flex",gap:28,marginBottom:18,flexWrap:"wrap"}}>
+        {[{val:visited.size,lbl:"Lande"},{val:races.length,lbl:"Løb i alt"}].map(s=>(
           <div key={s.lbl}>
             <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2.2rem",color:"#1a6fc4",lineHeight:1}}>{s.val}</div>
             <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.6rem",letterSpacing:"1.5px",color:"#6a87a8",textTransform:"uppercase"}}>{s.lbl}</div>
           </div>
         ))}
       </div>
-
-      <div className="map-outer" style={{position:"relative",background:"#b8d8f0",borderRadius:4,overflow:"hidden",border:"1px solid #ccddf0",boxShadow:"0 4px 20px rgba(26,111,196,.1)"}}>
-        {!ready && !error && (
-          <div style={{padding:40,textAlign:"center",fontFamily:"'DM Mono',monospace",fontSize:"0.75rem",color:"#6a87a8"}}>Indlæser verdenskort…</div>
-        )}
-        {error && (
-          <div style={{padding:40,textAlign:"center",fontFamily:"'DM Mono',monospace",fontSize:"0.75rem",color:"#6a87a8"}}>Kortet kunne ikke indlæses. Tjek din internetforbindelse.</div>
-        )}
+      <div className="map-outer" style={{position:"relative",background:"#b8d8f0",borderRadius:10,overflow:"hidden",border:"1px solid #ccddf0",boxShadow:"0 4px 20px rgba(26,111,196,.1)"}}>
+        {!ready && !error && <div style={{padding:40,textAlign:"center",fontFamily:"'DM Mono',monospace",fontSize:"0.75rem",color:"#6a87a8"}}>Indlæser verdenskort…</div>}
+        {error && <div style={{padding:40,textAlign:"center",fontFamily:"'DM Mono',monospace",fontSize:"0.75rem",color:"#6a87a8"}}>Kortet kunne ikke indlæses. Tjek din internetforbindelse.</div>}
         {ready && <svg ref={svgRef} style={{width:"100%",height:"auto",display:"block"}} />}
-        {tooltip.visible && (
-          <div style={{position:"absolute",top:tooltip.y,left:tooltip.x,background:"#fff",border:"1px solid #1a6fc4",padding:"6px 12px",fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",pointerEvents:"none",whiteSpace:"nowrap",boxShadow:"0 4px 12px rgba(26,111,196,.15)",zIndex:10}}>
-            {tooltip.text}
-          </div>
-        )}
+        {tooltip.visible && <div style={{position:"absolute",top:tooltip.y,left:tooltip.x,background:"#fff",border:"1px solid #1a6fc4",padding:"6px 12px",fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",pointerEvents:"none",whiteSpace:"nowrap",boxShadow:"0 4px 12px rgba(26,111,196,.15)",zIndex:10,borderRadius:4}}>{tooltip.text}</div>}
       </div>
-
       <div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:14}}>
-        {[...visited].map(c => {
+        {[...visited].map(c=>{
           const n = races.filter(r=>r.country===c).length;
-          return <span key={c} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.65rem",letterSpacing:"1px",padding:"4px 11px",border:"1px solid #1a6fc4",color:"#1a6fc4",textTransform:"uppercase"}}>{c} ({n})</span>;
+          return <span key={c} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.65rem",letterSpacing:"0.5px",padding:"4px 11px",border:"1px solid #1a6fc4",color:"#1a6fc4",borderRadius:20,background:"#fff"}}>{COUNTRY_FLAG[c]||""} {c} ({n})</span>;
         })}
       </div>
     </div>
@@ -289,31 +324,28 @@ function WorldMap({ races }) {
 // ─── MAJORS VIEW ─────────────────────────────────────────────
 function MajorsView({ races }) {
   return (
-    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:2}}>
-      {MAJORS.map((m, i) => {
-        const runs = races.filter(r => r.major === m.name).sort((a,b)=>new Date(a.date)-new Date(b.date));
-        const times = runs.map(r => t2s(r.totalTime)).filter(Boolean);
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(270px,1fr))",gap:10}}>
+      {MAJORS.map((m,i)=>{
+        const runs = races.filter(r=>r.major===m.name).sort((a,b)=>new Date(a.date)-new Date(b.date));
+        const times = runs.map(r=>t2s(r.totalTime)).filter(Boolean);
         const pb = times.length ? Math.min(...times) : null;
         return (
-          <div key={m.name} style={{background: runs.length ? "#f5f9ff" : "#fff",border: `1px solid ${runs.length ? "#c0d8f5" : "#ccddf0"}`,padding:"22px 24px",position:"relative",overflow:"hidden",borderLeft:`3px solid ${runs.length ? "#1a6fc4" : "#ccddf0"}`}}>
+          <div key={m.name} style={{background:runs.length?"#f5f9ff":"#fff",border:`1px solid ${runs.length?"#c0d8f5":"#e2ebf5"}`,borderRadius:12,padding:"20px 22px",position:"relative",overflow:"hidden",borderLeft:`4px solid ${runs.length?"#1a6fc4":"#e2ebf5"}`}}>
             <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"3.5rem",color:"rgba(26,111,196,0.07)",position:"absolute",right:12,top:4,lineHeight:1}}>{String(i+1).padStart(2,"0")}</div>
             <div style={{fontSize:"1.6rem",marginBottom:6}}>{m.flag}</div>
-            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.35rem",letterSpacing:2}}>{m.name}</div>
-            <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.63rem",color:"#6a87a8",letterSpacing:1,textTransform:"uppercase",marginBottom:12}}>{m.city}</div>
-            <span style={{fontFamily:"'DM Mono',monospace",fontSize:"0.6rem",letterSpacing:"1.5px",padding:"3px 9px",background:runs.length?"#1a6fc4":"transparent",color:runs.length?"#fff":"#6a87a8",border:runs.length?"none":"1px solid #ccddf0",textTransform:"uppercase"}}>
-              {runs.length ? `✓ ${runs.length}× gennemført` : "Mangler"}
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.35rem",letterSpacing:1.5}}>{m.name}</div>
+            <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.63rem",color:"#6a87a8",letterSpacing:0.5,textTransform:"uppercase",marginBottom:12}}>{m.city}</div>
+            <span style={{fontFamily:"'DM Mono',monospace",fontSize:"0.6rem",letterSpacing:"1px",padding:"4px 10px",borderRadius:20,background:runs.length?"#1a6fc4":"transparent",color:runs.length?"#fff":"#6a87a8",border:runs.length?"none":"1px solid #ccddf0"}}>
+              {runs.length?`✓ ${runs.length}× gennemført`:"Mangler"}
             </span>
-            {runs.length > 0 && (
-              <div style={{display:"flex",flexDirection:"column",gap:4,marginTop:10}}>
-                {runs.map(r => {
-                  const s = t2s(r.totalTime);
-                  const isPB = s && s === pb && runs.length > 1;
-                  return (
-                    <div key={r.id} style={{display:"flex",justifyContent:"space-between",fontFamily:"'DM Mono',monospace",fontSize:"0.7rem",padding:"4px 8px",background:"rgba(26,111,196,0.06)",borderLeft:"2px solid #1a6fc4"}}>
-                      <span style={{color:"#6a87a8"}}>{r.date ? new Date(r.date).toLocaleDateString("da-DK",{year:"numeric",month:"short"}) : "–"}</span>
-                      <span style={{color:"#1a6fc4",fontWeight:500}}>{r.totalTime || "–"}{isPB ? " 🏆" : ""}</span>
-                    </div>
-                  );
+            {runs.length>0 && (
+              <div style={{display:"flex",flexDirection:"column",gap:4,marginTop:12}}>
+                {runs.map(r=>{
+                  const s=t2s(r.totalTime); const isPB=s&&s===pb&&runs.length>1;
+                  return <div key={r.id} style={{display:"flex",justifyContent:"space-between",fontFamily:"'DM Mono',monospace",fontSize:"0.72rem",padding:"5px 9px",background:"rgba(26,111,196,0.06)",borderRadius:6,borderLeft:"2px solid #1a6fc4"}}>
+                    <span style={{color:"#6a87a8"}}>{r.date?new Date(r.date).toLocaleDateString("da-DK",{year:"numeric",month:"short"}):"–"}</span>
+                    <span style={{color:"#1a6fc4",fontWeight:500}}>{r.totalTime||"–"}{isPB?" 🏆":""}</span>
+                  </div>;
                 })}
               </div>
             )}
@@ -327,72 +359,69 @@ function MajorsView({ races }) {
 // ─── RACE FORM MODAL ─────────────────────────────────────────
 function RaceModal({ race, onSave, onClose }) {
   const [form, setForm] = useState(() => {
-    if (race) return {
-      name: race.name||"", country: race.country||"", date: race.date||"", major: race.major||"",
-      splits: race.splitsRaw || Array(10).fill("")
-    };
-    return { name:"", country:"", date:"", major:"", splits: Array(10).fill("") };
+    if (race) return { name:race.name||"", country:race.country||"", date:race.date||"", major:race.major||"", cps: race.checkpointsRaw || Array(10).fill("") };
+    return { name:"", country:"", date:"", major:"", cps: Array(10).fill("") };
   });
   const [err, setErr] = useState("");
 
-  const splitIds = [
-    "0–5 km","5–10 km","10–15 km","15–20 km",
-    "20–21.095 km","21.095–25 km","25–30 km","30–35 km","35–40 km","40–42.195 km"
-  ];
-
   function handleSave() {
     if (!form.name.trim()) { setErr("Angiv løbsnavn"); return; }
-    const sp = form.splits.map(t2s);
-    const total = sp.filter(Boolean).length ? sp.filter(Boolean).reduce((a,b)=>a+b,0) : null;
+    // total time = the final checkpoint
+    const total = t2s(form.cps[9]);
     onSave({
       id: race ? race.id : uid(),
-      name: form.name.trim(), country: form.country.trim(),
-      date: form.date, major: form.major,
-      splitsRaw: form.splits,
+      name: form.name.trim(), country: form.country, date: form.date, major: form.major,
+      checkpointsRaw: form.cps,
       totalTime: total ? s2t(total) : null,
     });
   }
 
-  const inp = { background:"#f2f7fc", border:"1px solid #ccddf0", color:"#152235", padding:"9px 12px", fontFamily:"'DM Mono',monospace", fontSize:"0.8rem", width:"100%", outline:"none" };
-  const lbl = { display:"block", fontFamily:"'DM Mono',monospace", fontSize:"0.6rem", letterSpacing:"1.5px", color:"#6a87a8", textTransform:"uppercase", marginBottom:4 };
+  const inp = { background:"#f2f7fc", border:"1px solid #ccddf0", borderRadius:8, color:"#152235", padding:"11px 12px", fontFamily:"'DM Mono',monospace", fontSize:"16px", width:"100%", outline:"none", boxSizing:"border-box" };
+  const lbl = { display:"block", fontFamily:"'DM Mono',monospace", fontSize:"0.6rem", letterSpacing:"1.5px", color:"#6a87a8", textTransform:"uppercase", marginBottom:5 };
 
   return (
-    <div style={{position:"fixed",inset:0,background:"rgba(100,150,200,0.45)",backdropFilter:"blur(4px)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center"}} onClick={e=>{ if(e.target===e.currentTarget)onClose(); }}>
-      <div style={{background:"#fff",border:"1px solid #1a6fc4",padding:"32px 36px",width:580,maxWidth:"96vw",maxHeight:"92vh",overflowY:"auto",boxShadow:"0 20px 60px rgba(26,111,196,.18)"}}>
-        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.7rem",letterSpacing:3,color:"#1a6fc4",marginBottom:20}}>{race ? "Rediger Løb" : "Tilføj Løb"}</div>
+    <div style={{position:"fixed",inset:0,background:"rgba(100,150,200,0.45)",backdropFilter:"blur(4px)",zIndex:200,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
+      <div style={{background:"#fff",borderRadius:"18px 18px 0 0",padding:"24px 20px calc(24px + env(safe-area-inset-bottom))",width:560,maxWidth:"100%",maxHeight:"94vh",overflowY:"auto",boxShadow:"0 -8px 40px rgba(26,111,196,.2)"}}>
+        <div style={{width:40,height:4,background:"#ccddf0",borderRadius:2,margin:"0 auto 18px"}}/>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.7rem",letterSpacing:2,color:"#1a6fc4",marginBottom:18}}>{race?"Rediger løb":"Tilføj løb"}</div>
 
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
-          <div><label style={lbl}>Løbsnavn</label><input style={inp} value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="f.eks. Copenhagen Marathon"/></div>
-          <div><label style={lbl}>Land</label><input style={inp} value={form.country} onChange={e=>setForm(f=>({...f,country:e.target.value}))} placeholder="f.eks. Danmark"/></div>
+        <div style={{marginBottom:12}}><label style={lbl}>Løbsnavn</label><input style={inp} value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="f.eks. Copenhagen Marathon"/></div>
+
+        <div style={{marginBottom:12}}>
+          <label style={lbl}>Land</label>
+          <select style={{...inp,appearance:"none",backgroundImage:"url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236a87a8' stroke-width='1.5' fill='none'/%3E%3C/svg%3E\")",backgroundRepeat:"no-repeat",backgroundPosition:"right 14px center"}} value={form.country} onChange={e=>setForm(f=>({...f,country:e.target.value}))}>
+            <option value="">— Vælg land —</option>
+            {COUNTRIES.map(([name,flag])=><option key={name} value={name}>{flag} {name}</option>)}
+          </select>
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
+
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
           <div><label style={lbl}>Dato</label><input type="date" style={inp} value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))}/></div>
           <div>
             <label style={lbl}>World Major?</label>
-            <select style={{...inp,appearance:"none"}} value={form.major} onChange={e=>setForm(f=>({...f,major:e.target.value}))}>
-              <option value="">Nej / andet løb</option>
+            <select style={{...inp,appearance:"none",backgroundImage:"url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236a87a8' stroke-width='1.5' fill='none'/%3E%3C/svg%3E\")",backgroundRepeat:"no-repeat",backgroundPosition:"right 14px center"}} value={form.major} onChange={e=>setForm(f=>({...f,major:e.target.value}))}>
+              <option value="">Nej</option>
               {MAJORS.map(m=><option key={m.name}>{m.name}</option>)}
             </select>
           </div>
         </div>
 
-        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1rem",letterSpacing:2,color:"#1a6fc4",margin:"18px 0 4px"}}>Splittider</div>
-        <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.6rem",color:"#6a87a8",marginBottom:10}}>Format: mm:ss eller h:mm:ss — 20-25 km beregnes automatisk fra de to delstrækninger</div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
-          {splitIds.map((lbl2,i) => (
-            <div key={i}>
-              <label style={lbl}>{lbl2}</label>
-              <input style={inp} placeholder="mm:ss" value={form.splits[i]||""} onChange={e=>{
-                const s=[...form.splits]; s[i]=e.target.value; setForm(f=>({...f,splits:s}));
-              }}/>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.1rem",letterSpacing:1.5,color:"#1a6fc4",margin:"18px 0 4px"}}>Tider undervejs</div>
+        <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",color:"#6a87a8",marginBottom:12,lineHeight:1.5}}>Skriv den tid uret viste ved hvert punkt (kumulativ tid). Format: <b>t:mm:ss</b> — f.eks. 1:45:30. Splits beregnes automatisk.</div>
+
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+          {CHECKPOINTS.map((cp,i)=>(
+            <div key={i} style={i===9?{gridColumn:"1 / -1"}:{}}>
+              <label style={{...lbl, color:i===4?"#1a6fc4":i===9?"#c08820":"#6a87a8"}}>{cp.label}{i===4?" ⭐":i===9?" 🏁":""}</label>
+              <input style={{...inp, ...(i===4?{borderColor:"#1a6fc4"}:i===9?{borderColor:"#c08820"}:{})}} placeholder="t:mm:ss" value={form.cps[i]||""} inputMode="numeric" onChange={e=>{const c=[...form.cps];c[i]=e.target.value;setForm(f=>({...f,cps:c}));}}/>
             </div>
           ))}
         </div>
 
         {err && <div style={{color:"#d03030",fontFamily:"'DM Mono',monospace",fontSize:"0.7rem",marginTop:10}}>{err}</div>}
         <div style={{display:"flex",gap:8,marginTop:20}}>
-          <button onClick={onClose} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.7rem",padding:"10px 18px",background:"transparent",border:"1px solid #ccddf0",color:"#6a87a8",cursor:"pointer"}}>Annuller</button>
-          <button onClick={handleSave} style={{flex:1,fontFamily:"'Bebas Neue',sans-serif",fontSize:"1rem",letterSpacing:3,padding:"12px",background:"#1a6fc4",color:"#fff",border:"none",cursor:"pointer"}}>GEM LØB</button>
+          <button onClick={onClose} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.75rem",padding:"14px 18px",background:"#f2f7fc",border:"1px solid #ccddf0",borderRadius:10,color:"#6a87a8",cursor:"pointer"}}>Annuller</button>
+          <button onClick={handleSave} style={{flex:1,fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.1rem",letterSpacing:2,padding:"14px",background:"#1a6fc4",color:"#fff",border:"none",borderRadius:10,cursor:"pointer"}}>GEM LØB</button>
         </div>
       </div>
     </div>
@@ -405,48 +434,272 @@ function RacesView({ races, onAdd, onEdit, onDelete }) {
   const times = races.map(r=>t2s(r.totalTime)).filter(Boolean);
   const pb = times.length ? Math.min(...times) : null;
 
-  const th = { padding:"8px 13px", fontFamily:"'DM Mono',monospace", fontSize:"0.6rem", letterSpacing:"2px", color:"#6a87a8", textTransform:"uppercase", textAlign:"left", whiteSpace:"nowrap" };
-  const td = { padding:"11px 13px", whiteSpace:"nowrap" };
+  return (
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18,gap:12}}>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2.2rem",letterSpacing:2}}>Alle <span style={{color:"#1a6fc4"}}>løb</span></div>
+        <button onClick={onAdd} style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"0.95rem",letterSpacing:2,padding:"11px 20px",background:"#1a6fc4",color:"#fff",border:"none",borderRadius:10,cursor:"pointer",whiteSpace:"nowrap"}}>+ Tilføj</button>
+      </div>
+      {races.length===0 ? (
+        <div style={{textAlign:"center",padding:"50px 20px",fontFamily:"'DM Mono',monospace",fontSize:"0.78rem",color:"#6a87a8"}}>Ingen løb endnu — tryk "Tilføj" for at starte 🏃</div>
+      ) : (
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          {sorted.map((r,i)=>{
+            const s=t2s(r.totalTime); const isPB=s&&s===pb;
+            return (
+              <div key={r.id} style={{background:"#fff",border:"1px solid #e2ebf5",borderRadius:12,padding:"14px 16px",boxShadow:"0 1px 6px rgba(26,111,196,.05)"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}}>
+                  <div style={{minWidth:0,flex:1}}>
+                    <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
+                      {r.major && <span style={{fontSize:"0.7rem"}}>⭐</span>}
+                      <span style={{fontFamily:"'DM Sans',sans-serif",fontWeight:600,fontSize:"1rem"}}>{r.name}</span>
+                      {isPB && <span style={{fontFamily:"'DM Mono',monospace",fontSize:"0.55rem",letterSpacing:1,padding:"2px 7px",background:"#c08820",color:"#fff",borderRadius:4}}>PB</span>}
+                    </div>
+                    <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",color:"#6a87a8",marginTop:4}}>
+                      {COUNTRY_FLAG[r.country]||""} {r.country||"–"} · {fmtDate(r.date)}
+                    </div>
+                  </div>
+                  <div style={{textAlign:"right",flexShrink:0}}>
+                    <div style={{fontFamily:"'DM Mono',monospace",fontSize:"1.1rem",color:"#1a6fc4",fontWeight:500}}>{r.totalTime||"–"}</div>
+                    <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",color:"#6a87a8"}}>{paceFmt(42.195,s)}</div>
+                  </div>
+                </div>
+                <div style={{display:"flex",gap:8,marginTop:12,borderTop:"1px solid #f0f5fa",paddingTop:10}}>
+                  <button onClick={()=>onEdit(r)} style={{flex:1,fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",letterSpacing:0.5,padding:"8px",border:"1px solid #ccddf0",background:"#f2f7fc",borderRadius:8,color:"#1a6fc4",cursor:"pointer"}}>Rediger</button>
+                  <button onClick={()=>onDelete(r)} style={{flex:1,fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",letterSpacing:0.5,padding:"8px",border:"1px solid #f2d0d0",background:"#fdf5f5",borderRadius:8,color:"#d03030",cursor:"pointer"}}>Slet</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── STATS VIEW (mobile-first) ───────────────────────────────
+function StatsView({ races }) {
+  const sorted = [...races].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const [mode, setMode] = useState("ranking"); // "ranking" | "detail" | "compare"
+  const [detailId, setDetailId] = useState(sorted.length ? sorted[sorted.length-1].id : null);
+  const [rankBy, setRankBy] = useState("total"); // "total" | seg index string | "half" | "sprint"
+
+  useEffect(()=>{ if(sorted.length && !sorted.find(r=>r.id===detailId)) setDetailId(sorted[sorted.length-1].id); },[races]);
+
+  if (!races.length) return <div style={{textAlign:"center",padding:50,fontFamily:"'DM Mono',monospace",fontSize:"0.78rem",color:"#6a87a8"}}>Ingen løb at vise statistik for endnu</div>;
+
+  const allTimes = races.map(r=>t2s(r.totalTime)).filter(Boolean);
+  const pb = allTimes.length ? Math.min(...allTimes) : null;
+  const avgTime = allTimes.length ? allTimes.reduce((a,b)=>a+b,0)/allTimes.length : null;
+
+  const tabBtn = (id,label) => (
+    <button onClick={()=>setMode(id)} style={{flex:1,fontFamily:"'DM Mono',monospace",fontSize:"0.66rem",letterSpacing:0.5,padding:"10px 4px",background:mode===id?"#1a6fc4":"#fff",border:`1px solid ${mode===id?"#1a6fc4":"#ccddf0"}`,color:mode===id?"#fff":"#6a87a8",cursor:"pointer",borderRadius:8}}>{label}</button>
+  );
+
+  // ── Ranking options ──
+  const rankOptions = [
+    { key:"total", label:"Sluttid", getVal:r=>computeRace(r.checkpointsRaw).total, dist:42.195 },
+    { key:"half", label:"Halvmaraton", getVal:r=>computeRace(r.checkpointsRaw).half, dist:21.0975 },
+    { key:"sprint", label:"Spurt 40→mål", getVal:r=>computeRace(r.checkpointsRaw).segs[9], dist:2.195 },
+    ...SEGMENTS.slice(0,9).map((seg,i)=>({ key:"seg"+i, label:seg.label, getVal:r=>computeRace(r.checkpointsRaw).segs[i], dist:seg.dist })),
+  ];
+  const activeRank = rankOptions.find(o=>o.key===rankBy) || rankOptions[0];
+
+  const summaryCards = (
+    <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10,marginBottom:18}}>
+      {[
+        {val:races.length,lbl:"Løb i alt"},
+        {val:pb?s2t(pb):"–",lbl:"Personlig rekord"},
+        {val:avgTime?s2t(Math.round(avgTime)):"–",lbl:"Gennemsnitstid"},
+        {val:pb?paceFmt(42.195,pb):"–",lbl:"Bedste tempo"},
+      ].map(c=>(
+        <div key={c.lbl} style={{background:"#fff",border:"1px solid #e2ebf5",borderRadius:12,padding:"14px 16px"}}>
+          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.7rem",color:"#1a6fc4",lineHeight:1,marginBottom:2}}>{c.val}</div>
+          <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.55rem",letterSpacing:"1px",color:"#6a87a8",textTransform:"uppercase"}}>{c.lbl}</div>
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <div>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:22,flexWrap:"wrap",gap:12}}>
-        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2.6rem",letterSpacing:3}}>Alle <span style={{color:"#1a6fc4"}}>Løb</span></div>
-        <button onClick={onAdd} style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"0.9rem",letterSpacing:3,padding:"10px 22px",background:"#1a6fc4",color:"#fff",border:"none",cursor:"pointer"}}>+ Tilføj Løb</button>
+      {summaryCards}
+      <div style={{display:"flex",gap:6,marginBottom:18}}>
+        {tabBtn("ranking","🏆 Rangering")}
+        {tabBtn("detail","🔍 Et løb")}
+        {tabBtn("compare","⚖️ Sammenlign")}
       </div>
-      {races.length === 0 ? (
-        <div style={{textAlign:"center",padding:"60px 20px",fontFamily:"'DM Mono',monospace",fontSize:"0.75rem",color:"#6a87a8"}}>Ingen løb endnu — klik "Tilføj Løb" for at starte</div>
+
+      {mode==="ranking" && (
+        <div>
+          <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",color:"#6a87a8",letterSpacing:1,textTransform:"uppercase",marginBottom:8}}>Rangér løb efter:</div>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:18}}>
+            {rankOptions.map(o=>(
+              <button key={o.key} onClick={()=>setRankBy(o.key)} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.64rem",padding:"7px 12px",borderRadius:20,background:rankBy===o.key?"#1a6fc4":"#fff",border:`1px solid ${rankBy===o.key?"#1a6fc4":"#ccddf0"}`,color:rankBy===o.key?"#fff":"#6a87a8",cursor:"pointer"}}>{o.label}</button>
+            ))}
+          </div>
+          <RankingList races={sorted} option={activeRank}/>
+        </div>
+      )}
+
+      {mode==="detail" && (
+        <div>
+          <select value={detailId||""} onChange={e=>setDetailId(e.target.value)} style={{width:"100%",background:"#fff",border:"1px solid #ccddf0",borderRadius:10,padding:"12px 14px",fontFamily:"'DM Mono',monospace",fontSize:"16px",color:"#152235",marginBottom:18,appearance:"none",backgroundImage:"url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236a87a8' stroke-width='1.5' fill='none'/%3E%3C/svg%3E\")",backgroundRepeat:"no-repeat",backgroundPosition:"right 14px center"}}>
+            {sorted.map(r=><option key={r.id} value={r.id}>{r.name} — {r.date?new Date(r.date).getFullYear():""}</option>)}
+          </select>
+          <DetailView race={sorted.find(r=>r.id===detailId)}/>
+        </div>
+      )}
+
+      {mode==="compare" && <CompareView races={sorted}/>}
+    </div>
+  );
+}
+
+function RankingList({ races, option }) {
+  const ranked = races.map(r=>({ r, val:option.getVal(r) }))
+    .filter(x=>x.val!=null)
+    .sort((a,b)=>a.val-b.val);
+  if (!ranked.length) return <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.72rem",color:"#6a87a8",padding:20,textAlign:"center"}}>Ingen tider registreret for dette punkt</div>;
+  const best = ranked[0].val;
+  return (
+    <div style={{display:"flex",flexDirection:"column",gap:8}}>
+      {ranked.map((x,i)=>{
+        const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":`${i+1}.`;
+        const diff = x.val - best;
+        return (
+          <div key={x.r.id} style={{display:"flex",alignItems:"center",gap:12,background:i===0?"#f0f7ff":"#fff",border:`1px solid ${i===0?"#c0d8f5":"#e2ebf5"}`,borderRadius:10,padding:"12px 14px"}}>
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.3rem",width:30,textAlign:"center",color:"#1a6fc4"}}>{medal}</div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontFamily:"'DM Sans',sans-serif",fontWeight:600,fontSize:"0.9rem",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{COUNTRY_FLAG[x.r.country]||""} {x.r.name}</div>
+              <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",color:"#6a87a8"}}>{x.r.date?new Date(x.r.date).getFullYear():""} · {paceFmt(option.dist,x.val)}</div>
+            </div>
+            <div style={{textAlign:"right"}}>
+              <div style={{fontFamily:"'DM Mono',monospace",fontSize:"1rem",color:"#1a6fc4",fontWeight:500}}>{s2t(x.val)}</div>
+              {i>0 && <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.6rem",color:"#d03030"}}>+{s2t(diff)}</div>}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function DetailView({ race }) {
+  if (!race) return null;
+  const { cum, segs, total, half } = computeRace(race.checkpointsRaw);
+  const segPaces = segs.map((s,i)=> s!=null ? s/SEGMENTS[i].dist : null);
+  const valid = segPaces.filter(p=>p!=null);
+  const maxP = valid.length?Math.max(...valid)*1.05:1;
+  const minP = valid.length?Math.min(...valid)*0.95:0;
+  const fastestSeg = valid.length?Math.min(...valid):null;
+  const slowestSeg = valid.length?Math.max(...valid):null;
+
+  return (
+    <div>
+      {/* Bar chart */}
+      <div style={{background:"#fff",border:"1px solid #e2ebf5",borderRadius:12,padding:"18px 16px",marginBottom:14}}>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.1rem",letterSpacing:1,color:"#1a6fc4",marginBottom:4}}>Tempo pr. segment</div>
+        <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.58rem",color:"#6a87a8",marginBottom:14}}>Kort søjle = hurtigt · Grøn = hurtigste · Rød = langsomste</div>
+        <div style={{display:"flex",alignItems:"flex-end",gap:4,height:150,borderBottom:"1px solid #e2ebf5",paddingBottom:2}}>
+          {segs.map((s,i)=>{
+            const p = s!=null?s/SEGMENTS[i].dist:null;
+            const pct = p!=null ? Math.max(6,Math.round(((p-minP)/(maxP-minP||1))*88+8)) : 4;
+            const color = p===fastestSeg?"#1a8c50":p===slowestSeg?"#d03030":"#1a6fc4";
+            return (
+              <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-end",height:"100%"}}>
+                <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.5rem",color:"#6a87a8",marginBottom:2,whiteSpace:"nowrap"}}>{s!=null?s2t(s):""}</div>
+                <div style={{width:"100%",height:`${pct}%`,background:color,opacity:0.85,borderRadius:"3px 3px 0 0",minHeight:4}}/>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{display:"flex",gap:4,marginTop:4}}>
+          {SEGMENTS.map((seg,i)=>(
+            <div key={i} style={{flex:1,fontFamily:"'DM Mono',monospace",fontSize:"0.45rem",color:"#6a87a8",textAlign:"center",lineHeight:1.1}}>{seg.label.replace(" km","").replace("Spurt ","")}</div>
+          ))}
+        </div>
+      </div>
+
+      {/* Split table */}
+      <div style={{background:"#fff",border:"1px solid #e2ebf5",borderRadius:12,padding:"6px 0",overflow:"hidden"}}>
+        <div style={{display:"flex",padding:"10px 16px",borderBottom:"2px solid #1a6fc4",fontFamily:"'DM Mono',monospace",fontSize:"0.55rem",letterSpacing:1,color:"#6a87a8",textTransform:"uppercase"}}>
+          <span style={{flex:"0 0 95px"}}>Segment</span>
+          <span style={{flex:1,textAlign:"right"}}>Split</span>
+          <span style={{flex:1,textAlign:"right"}}>Tempo</span>
+          <span style={{flex:1,textAlign:"right"}}>Samlet</span>
+        </div>
+        {SEGMENTS.map((seg,i)=>{
+          const s=segs[i]; const isHalf=i===4; const isSprint=i===9;
+          const cumHere = cum[seg.to];
+          return (
+            <div key={i} style={{display:"flex",padding:"10px 16px",borderBottom:"1px solid #f0f5fa",fontFamily:"'DM Mono',monospace",fontSize:"0.74rem",background:isHalf?"rgba(26,111,196,0.05)":isSprint?"rgba(192,136,32,0.06)":"transparent"}}>
+              <span style={{flex:"0 0 95px",color:isSprint?"#c08820":"#6a87a8",fontSize:"0.66rem",display:"flex",alignItems:"center"}}>{seg.label}{isSprint?" 🏁":""}</span>
+              <span style={{flex:1,textAlign:"right",color:"#152235",fontWeight:500}}>{s2t(s)}</span>
+              <span style={{flex:1,textAlign:"right",color:"#1a6fc4"}}>{paceFmt(seg.dist,s)}</span>
+              <span style={{flex:1,textAlign:"right",color:"#6a87a8"}}>{s2t(cumHere)}</span>
+            </div>
+          );
+        })}
+        {/* Half + total highlights */}
+        <div style={{display:"flex",padding:"12px 16px",fontFamily:"'DM Mono',monospace",fontSize:"0.8rem",background:"rgba(26,111,196,0.08)",fontWeight:600}}>
+          <span style={{flex:"0 0 95px",color:"#1a6fc4",fontSize:"0.68rem",display:"flex",alignItems:"center"}}>⭐ Halvmaraton</span>
+          <span style={{flex:2,textAlign:"right",color:"#1a6fc4"}}>{s2t(half)}</span>
+          <span style={{flex:1,textAlign:"right",color:"#6a87a8",fontSize:"0.66rem",alignSelf:"center"}}>{paceFmt(21.0975,half)}</span>
+        </div>
+        <div style={{display:"flex",padding:"12px 16px",fontFamily:"'DM Mono',monospace",fontSize:"0.9rem",background:"#1a6fc4",color:"#fff",fontWeight:600}}>
+          <span style={{flex:"0 0 95px",fontSize:"0.7rem",display:"flex",alignItems:"center"}}>🏁 SLUTTID</span>
+          <span style={{flex:2,textAlign:"right"}}>{s2t(total)}</span>
+          <span style={{flex:1,textAlign:"right",fontSize:"0.66rem",alignSelf:"center",opacity:0.85}}>{paceFmt(42.195,total)}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CompareView({ races }) {
+  const [selected, setSelected] = useState(()=> new Set(races.slice(-2).map(r=>r.id)));
+  const sel = races.filter(r=>selected.has(r.id));
+  const toggle = id => setSelected(prev=>{ const n=new Set(prev); if(n.has(id))n.delete(id); else n.add(id); return n; });
+
+  const rows = [
+    ...CHECKPOINTS.map((cp,i)=>({ label:cp.label, get:rc=>computeRace(rc.checkpointsRaw).cum[i] })),
+  ];
+
+  return (
+    <div>
+      <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",color:"#6a87a8",letterSpacing:1,textTransform:"uppercase",marginBottom:8}}>Vælg løb at sammenligne:</div>
+      <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:18}}>
+        {races.map(r=>(
+          <button key={r.id} onClick={()=>toggle(r.id)} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",padding:"7px 11px",borderRadius:20,background:selected.has(r.id)?"#1a6fc4":"#fff",border:`1px solid ${selected.has(r.id)?"#1a6fc4":"#ccddf0"}`,color:selected.has(r.id)?"#fff":"#6a87a8",cursor:"pointer"}}>{r.name.substring(0,16)} '{r.date?String(new Date(r.date).getFullYear()).slice(2):"?"}</button>
+        ))}
+      </div>
+      {sel.length<2 ? (
+        <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.72rem",color:"#6a87a8",padding:20,textAlign:"center"}}>Vælg mindst to løb</div>
       ) : (
-        <div style={{overflowX:"auto"}}>
-          <table style={{width:"100%",borderCollapse:"collapse",fontFamily:"'DM Mono',monospace",fontSize:"0.78rem"}}>
+        <div style={{overflowX:"auto",background:"#fff",border:"1px solid #e2ebf5",borderRadius:12}}>
+          <table style={{width:"100%",borderCollapse:"collapse",fontFamily:"'DM Mono',monospace",fontSize:"0.72rem",minWidth:sel.length*90+110}}>
             <thead>
               <tr style={{borderBottom:"2px solid #1a6fc4"}}>
-                <th style={th}>#</th><th style={th}>Løb</th><th style={th}>Land</th>
-                <th style={th}>Dato</th><th style={th}>Sluttid</th><th style={th}>Tempo</th><th style={th}></th>
+                <th style={{textAlign:"left",padding:"10px 12px",fontSize:"0.55rem",letterSpacing:1,color:"#6a87a8",textTransform:"uppercase",position:"sticky",left:0,background:"#fff"}}>Punkt</th>
+                {sel.map((r,i)=><th key={r.id} style={{textAlign:"right",padding:"10px 12px",fontSize:"0.58rem",letterSpacing:0.5,color:RACE_COLORS[i%RACE_COLORS.length],whiteSpace:"nowrap"}}>{r.name.substring(0,9)}<br/>'{r.date?String(new Date(r.date).getFullYear()).slice(2):"?"}</th>)}
               </tr>
             </thead>
             <tbody>
-              {sorted.map((r,i) => {
-                const s = t2s(r.totalTime);
-                const isPB = s && s === pb;
+              {rows.map((row,ri)=>{
+                const vals = sel.map(r=>row.get(r));
+                const nn = vals.filter(v=>v!=null);
+                const best = nn.length>1?Math.min(...nn):null;
+                const worst = nn.length>1?Math.max(...nn):null;
+                const isHL = row.label==="Halvmaraton";
+                const isFin = row.label.startsWith("Mål");
                 return (
-                  <tr key={r.id} style={{borderBottom:"1px solid #e8f2fb"}}>
-                    <td style={{...td,color:"#6a87a8",fontSize:"0.7rem"}}>{i+1}</td>
-                    <td style={{...td,fontFamily:"'DM Sans',sans-serif",fontWeight:500}}>
-                      {r.major && <span style={{display:"inline-block",width:6,height:6,background:"#c08820",borderRadius:"50%",marginRight:5,verticalAlign:"middle"}}/>}
-                      {r.name}
-                      {isPB && <span style={{fontSize:"0.55rem",letterSpacing:1,padding:"2px 6px",background:"#c08820",color:"#fff",marginLeft:7,verticalAlign:"middle"}}>PB</span>}
-                    </td>
-                    <td style={{...td,color:"#6a87a8"}}>{r.country||"–"}</td>
-                    <td style={td}>{fmtDate(r.date)}</td>
-                    <td style={{...td,color:"#1a6fc4",fontWeight:500}}>{r.totalTime||"–"}</td>
-                    <td style={{...td,color:"#6a87a8"}}>{paceFmt(42.195,s)}</td>
-                    <td style={td}>
-                      <div style={{display:"flex",gap:6}}>
-                        <button onClick={()=>onEdit(r)} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.65rem",letterSpacing:1,padding:"4px 10px",border:"1px solid #ccddf0",background:"transparent",color:"#6a87a8",cursor:"pointer"}}>Rediger</button>
-                        <button onClick={()=>onDelete(r)} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.65rem",letterSpacing:1,padding:"4px 10px",border:"1px solid #ccddf0",background:"transparent",color:"#d03030",cursor:"pointer"}}>Slet</button>
-                      </div>
-                    </td>
+                  <tr key={ri} style={{borderBottom:"1px solid #f0f5fa",background:isHL?"rgba(26,111,196,0.05)":isFin?"rgba(192,136,32,0.06)":"transparent"}}>
+                    <td style={{textAlign:"left",padding:"9px 12px",color:isHL?"#1a6fc4":isFin?"#c08820":"#6a87a8",fontWeight:isHL||isFin?600:400,position:"sticky",left:0,background:isHL?"#eef5fc":isFin?"#fbf6ed":"#fff",whiteSpace:"nowrap"}}>{row.label}</td>
+                    {vals.map((v,i)=>{
+                      const isBest=v===best; const isWorst=v===worst;
+                      return <td key={i} style={{textAlign:"right",padding:"9px 12px",color:isBest?"#1a8c50":isWorst?"#d03030":"#152235",fontWeight:isBest?600:400,whiteSpace:"nowrap"}}>{s2t(v)}</td>;
+                    })}
                   </tr>
                 );
               })}
@@ -454,335 +707,7 @@ function RacesView({ races, onAdd, onEdit, onDelete }) {
           </table>
         </div>
       )}
-    </div>
-  );
-}
-
-// ─── STATS VIEW ──────────────────────────────────────────────
-function StatsView({ races }) {
-  const sorted = [...races].sort((a,b)=>new Date(a.date)-new Date(b.date));
-  const [selected, setSelected] = useState(() => sorted.length ? new Set([sorted[sorted.length-1].id]) : new Set());
-  const [showAvg, setShowAvg] = useState(false);
-
-  useEffect(() => {
-    if (sorted.length && selected.size === 0) setSelected(new Set([sorted[sorted.length-1].id]));
-  }, [races]);
-
-  const selRaces = sorted.filter(r => selected.has(r.id));
-  const allTimes = races.map(r=>t2s(r.totalTime)).filter(Boolean);
-  const pb = allTimes.length ? Math.min(...allTimes) : null;
-  const avgTime = allTimes.length ? allTimes.reduce((a,b)=>a+b,0)/allTimes.length : null;
-
-  // Compute per-race data
-  const raceData = selRaces.map(r => {
-    const { sp, total, half, seg2025 } = computeRaceStats(r.splitsRaw);
-    return { r, sp, total, half, seg2025 };
-  });
-
-  // Average across selected races
-  let avgData = null;
-  if (showAvg && selRaces.length >= 2) {
-    const avgSp = SEG_DISTS.map((_,i) => {
-      const vals = raceData.map(d=>d.sp[i]).filter(v=>v!=null);
-      return vals.length ? Math.round(vals.reduce((a,b)=>a+b,0)/vals.length) : null;
-    });
-    const ah = avgSp.slice(0,5).every(s=>s!=null) ? avgSp.slice(0,5).reduce((a,b)=>a+b,0) : null;
-    const at = avgSp.filter(Boolean).length ? avgSp.filter(Boolean).reduce((a,b)=>a+b,0) : null;
-    const a2025 = (avgSp[4]!=null&&avgSp[5]!=null) ? avgSp[4]+avgSp[5] : null;
-    avgData = { sp:avgSp, half:ah, total:at, seg2025:a2025 };
-  }
-
-  const toggleRace = id => {
-    setSelected(prev => {
-      const next = new Set(prev);
-      if (next.has(id) && next.size > 1) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const panelStyle = { background:"#fff", border:"1px solid #ccddf0", padding:"20px 22px" };
-  const h3Style = { fontFamily:"'Bebas Neue',sans-serif", fontSize:"1.15rem", letterSpacing:2, color:"#1a6fc4", marginBottom:14 };
-
-  return (
-    <div>
-      {/* Summary cards */}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:20}}>
-        {[
-          {val:races.length, lbl:"Løb i alt"},
-          {val:pb?s2t(pb):"–", lbl:"Personlig rekord"},
-          {val:avgTime?s2t(Math.round(avgTime)):"–", lbl:"Gennemsnitstid"},
-          {val:pb?paceFmt(42.195,pb):"–", lbl:"Bedste tempo"},
-        ].map(c => (
-          <div key={c.lbl} style={panelStyle}>
-            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.8rem",color:"#1a6fc4",lineHeight:1,marginBottom:2}}>{c.val}</div>
-            <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.57rem",letterSpacing:"1.5px",color:"#6a87a8",textTransform:"uppercase"}}>{c.lbl}</div>
-          </div>
-        ))}
-      </div>
-
-      {races.length === 0 ? (
-        <div style={{textAlign:"center",padding:60,fontFamily:"'DM Mono',monospace",fontSize:"0.75rem",color:"#6a87a8"}}>Ingen løb endnu</div>
-      ) : (
-        <>
-          {/* Toolbar */}
-          <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:20,alignItems:"center"}}>
-            {sorted.map(r => (
-              <button key={r.id} onClick={()=>toggleRace(r.id)} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",letterSpacing:1,padding:"6px 13px",background:selected.has(r.id)?"#e8f2fb":"transparent",border:`1px solid ${selected.has(r.id)?"#1a6fc4":"#ccddf0"}`,color:selected.has(r.id)?"#1a6fc4":"#6a87a8",cursor:"pointer",whiteSpace:"nowrap"}}>
-                {r.name} {r.date?new Date(r.date).getFullYear():""}
-              </button>
-            ))}
-            {selRaces.length >= 2 && (
-              <button onClick={()=>setShowAvg(a=>!a)} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",letterSpacing:1,padding:"6px 13px",background:showAvg?"#fdf8f0":"transparent",border:`1px solid ${showAvg?"#c08820":"#ccddf0"}`,color:showAvg?"#c08820":"#6a87a8",cursor:"pointer"}}>
-                ⌀ Gennemsnit
-              </button>
-            )}
-          </div>
-
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:18}}>
-            {/* Splits table */}
-            <div style={panelStyle}>
-              <div style={h3Style}>Splittider</div>
-              {/* Header */}
-              <div style={{display:"flex",gap:2,paddingBottom:6,borderBottom:"1px solid #1a6fc4",marginBottom:4}}>
-                <span style={{fontFamily:"'DM Mono',monospace",fontSize:"0.58rem",color:"#6a87a8",flex:"0 0 110px"}}>SEGMENT</span>
-                {raceData.map((d,i) => (
-                  <span key={d.r.id} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.56rem",color:RACE_COLORS[i%RACE_COLORS.length],flex:1,textAlign:"right",letterSpacing:1}}>
-                    {d.r.name.substring(0,9)}
-                  </span>
-                ))}
-                {avgData && <span style={{fontFamily:"'DM Mono',monospace",fontSize:"0.56rem",color:"#c08820",flex:1,textAlign:"right",letterSpacing:1}}>SNIT</span>}
-              </div>
-
-              {/* Rows */}
-              {[...Array(10)].map((_,i) => {
-                const isLast = i===9;
-                return (
-                  <div key={i}>
-                    <SplitRow label={SEG_LABELS[i]} raceData={raceData} avgData={avgData}
-                      getValue={d=>d.sp[i]} dist={SEG_DISTS[i]}
-                      bg={isLast?"rgba(26,111,196,0.06)":"transparent"} bold={isLast}/>
-                    {i === 4 && <>
-                      <SplitRow label="½ Marathon (21.095 km)" raceData={raceData} avgData={avgData}
-                        getValue={d=>d.half} dist={21.095}
-                        bg="rgba(26,111,196,0.08)" bold={true} accent={true}/>
-                      <SplitRow label="20–25 km (samlet)" raceData={raceData} avgData={avgData}
-                        getValue={d=>d.seg2025} dist={5}
-                        bg="rgba(26,111,196,0.03)"/>
-                    </>}
-                  </div>
-                );
-              })}
-              <SplitRow label="TOTAL" raceData={raceData} avgData={avgData}
-                getValue={d=>d.total} dist={42.195}
-                bg="rgba(26,111,196,0.1)" bold={true}/>
-            </div>
-
-            {/* Chart + compare */}
-            <div>
-              <div style={{...panelStyle, marginBottom:18}}>
-                <div style={h3Style}>Tempo pr. segment (sek/km)</div>
-                <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.58rem",color:"#6a87a8",marginBottom:10}}>Lav søjle = hurtigt tempo. Hover for detaljer.</div>
-                <BarChart raceData={raceData} avgData={avgData}/>
-                {/* Legend */}
-                <div style={{display:"flex",flexWrap:"wrap",gap:8,marginTop:14}}>
-                  {raceData.map((d,i)=>(
-                    <span key={d.r.id} style={{display:"flex",alignItems:"center",gap:4,fontFamily:"'DM Mono',monospace",fontSize:"0.58rem"}}>
-                      <span style={{display:"inline-block",width:9,height:9,background:RACE_COLORS[i%RACE_COLORS.length]}}/>
-                      {d.r.name} {d.r.date?new Date(d.r.date).getFullYear():""}
-                    </span>
-                  ))}
-                  {avgData && <span style={{display:"flex",alignItems:"center",gap:4,fontFamily:"'DM Mono',monospace",fontSize:"0.58rem"}}><span style={{display:"inline-block",width:9,height:9,background:"#c08820",outline:"1px dashed #c08820"}}/>Gennemsnit</span>}
-                </div>
-              </div>
-
-              {/* Compare table */}
-              {selRaces.length >= 2 && (
-                <div style={panelStyle}>
-                  <div style={h3Style}>Sammenligning</div>
-                  <CompareTable raceData={raceData} avgData={avgData}/>
-                </div>
-              )}
-            </div>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-function SplitRow({ label, raceData, avgData, getValue, dist, bg="transparent", bold=false, accent=false }) {
-  const vals = raceData.map(d => getValue(d));
-  const nonNull = vals.filter(v=>v!=null);
-  const best = nonNull.length > 1 ? Math.min(...nonNull) : null;
-  return (
-    <div style={{display:"flex",gap:2,padding:"7px 0",borderBottom:"1px solid #e8f2fb",background:bg,fontFamily:"'DM Mono',monospace",fontSize:"0.72rem",fontWeight:bold?"600":"400"}}>
-      <span style={{flex:"0 0 110px",color:accent?"#1a6fc4":"#6a87a8",fontSize:"0.65rem",display:"flex",alignItems:"center"}}>{label}</span>
-      {raceData.map((d,i)=>{
-        const v = getValue(d);
-        const isBest = best && v === best;
-        return (
-          <span key={d.r.id} style={{flex:1,textAlign:"right",color:isBest?"#1a8c50":RACE_COLORS[i%RACE_COLORS.length]}}>
-            {s2t(v)}<br/>
-            <span style={{fontSize:"0.58rem",color:"#6a87a8"}}>{paceFmt(dist,v)}</span>
-          </span>
-        );
-      })}
-      {avgData && (()=>{
-        const v = getValue(avgData);
-        return <span style={{flex:1,textAlign:"right",color:"#c08820"}}>{s2t(v)}<br/><span style={{fontSize:"0.58rem",color:"#6a87a8"}}>{paceFmt(dist,v)}</span></span>;
-      })()}
-    </div>
-  );
-}
-
-function BarChart({ raceData, avgData }) {
-  const [hovered, setHovered] = useState(null);
-
-  const allPaces = [];
-  raceData.forEach(d => {
-    SEG_DISTS.forEach((_,i) => { if(d.sp[i]) allPaces.push(d.sp[i]/SEG_DISTS[i]); });
-  });
-  if (!allPaces.length) return <div style={{color:"#6a87a8",fontFamily:"'DM Mono',monospace",fontSize:"0.7rem",padding:20}}>Ingen splits tilgængelige</div>;
-
-  const maxP = Math.max(...allPaces) * 1.05;
-  const minP = Math.min(...allPaces) * 0.95;
-  const H = 180;
-
-  return (
-    <div style={{position:"relative"}}>
-      {hovered && (
-        <div style={{position:"absolute",top:-28,left:hovered.x,transform:"translateX(-50%)",background:"#fff",border:"1px solid #1a6fc4",padding:"3px 8px",fontFamily:"'DM Mono',monospace",fontSize:"0.6rem",whiteSpace:"nowrap",zIndex:10,pointerEvents:"none",boxShadow:"0 2px 8px rgba(26,111,196,.15)"}}>
-          {hovered.text}
-        </div>
-      )}
-      <div style={{display:"flex",alignItems:"flex-end",gap:3,height:H,paddingBottom:22,borderBottom:"1px solid #ccddf0",position:"relative"}}>
-        {SEG_DISTS.map((_,i) => (
-          <div key={i} style={{flex:1,display:"flex",alignItems:"flex-end",gap:1,height:"100%",position:"relative",justifyContent:"center"}}>
-            {raceData.map((d,ri) => {
-              const s = d.sp[i];
-              const p = s ? s/SEG_DISTS[i] : null;
-              const pct = p ? Math.max(4, Math.round(((p-minP)/(maxP-minP))*82+10)) : 4;
-              return (
-                <div key={ri} style={{flex:1,height:`${pct}%`,background:RACE_COLORS[ri%RACE_COLORS.length],opacity:0.72,minHeight:3,cursor:"default",transition:"opacity .15s"}}
-                  onMouseEnter={e=>{ const rect=e.target.closest(".bar-chart-wrap")?.getBoundingClientRect(); setHovered({text:`${d.r.name}: ${s2t(s)} (${paceFmt(SEG_DISTS[i],s)})`,x:e.currentTarget.parentElement.offsetLeft+10}); }}
-                  onMouseLeave={()=>setHovered(null)}/>
-              );
-            })}
-            {avgData && (()=>{
-              const s=avgData.sp[i]; const p=s?s/SEG_DISTS[i]:null;
-              const pct=p?Math.max(4,Math.round(((p-minP)/(maxP-minP))*82+10)):4;
-              return <div style={{flex:1,height:`${pct}%`,background:"#c08820",opacity:0.55,minHeight:3,border:"1px dashed #c08820",cursor:"default"}}/>;
-            })()}
-            <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.42rem",color:"#6a87a8",writingMode:"vertical-rl",transform:"rotate(180deg)",position:"absolute",bottom:-20,whiteSpace:"nowrap"}}>{SEG_SHORT[i]}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function CompareTable({ raceData, avgData }) {
-  const segs = [...SEG_LABELS, "½ Marathon", "20–25 km", "TOTAL"];
-  const getVal = (d, si) => {
-    if (si < 10) return d.sp ? d.sp[si] : null;
-    if (si === 10) return d.half;
-    if (si === 11) return d.seg2025;
-    return d.total;
-  };
-  const th = {padding:"6px 9px",fontFamily:"'DM Mono',monospace",fontSize:"0.57rem",letterSpacing:"1.5px",color:"#6a87a8",textTransform:"uppercase",textAlign:"right",borderBottom:"1px solid #1a6fc4",whiteSpace:"nowrap"};
-  const td = {padding:"7px 9px",fontFamily:"'DM Mono',monospace",fontSize:"0.7rem",textAlign:"right",borderBottom:"1px solid #e8f2fb",whiteSpace:"nowrap"};
-  return (
-    <div style={{overflowX:"auto"}}>
-      <table style={{width:"100%",borderCollapse:"collapse"}}>
-        <thead>
-          <tr>
-            <th style={{...th,textAlign:"left"}}>Segment</th>
-            {raceData.map((d,i)=><th key={d.r.id} style={{...th,color:RACE_COLORS[i%RACE_COLORS.length]}}>{d.r.name.substring(0,10)} '{d.r.date?String(new Date(d.r.date).getFullYear()).slice(2):"?"}</th>)}
-            {avgData && <th style={{...th,color:"#c08820"}}>Snit</th>}
-            <th style={th}>Forskel</th>
-          </tr>
-        </thead>
-        <tbody>
-          {segs.map((lbl,si)=>{
-            const vals = raceData.map(d=>getVal(d,si));
-            const nonNull = vals.filter(v=>v!=null);
-            const best = nonNull.length>1?Math.min(...nonNull):null;
-            const worst = nonNull.length>1?Math.max(...nonNull):null;
-            const diff = best!=null&&worst!=null?worst-best:null;
-            return (
-              <tr key={lbl}>
-                <td style={{...td,textAlign:"left",color:"#6a87a8",fontSize:"0.65rem"}}>{lbl}</td>
-                {vals.map((v,i)=>{
-                  const isBest=v===best&&raceData.length>1; const isWorst=v===worst&&raceData.length>1;
-                  return <td key={i} style={{...td,color:isBest?"#1a8c50":isWorst?"#d03030":RACE_COLORS[i%RACE_COLORS.length]}}>{s2t(v)}</td>;
-                })}
-                {avgData && <td style={{...td,color:"#c08820"}}>{s2t(getVal(avgData,si))}</td>}
-                <td style={{...td,color:"#6a87a8"}}>{diff!=null?`+${s2t(diff)}`:"–"}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-// ─── LOGIN ───────────────────────────────────────────────────
-function Login({ onLogin }) {
-  const [tab, setTab] = useState("login");
-  const [liUser,setLiUser]=useState(""); const [liPass,setLiPass]=useState(""); const [liErr,setLiErr]=useState("");
-  const [rUser,setRUser]=useState(""); const [rPass,setRPass]=useState(""); const [rPass2,setRPass2]=useState(""); const [rErr,setRErr]=useState("");
-
-  const inp = { background:"#f2f7fc", border:"1px solid #ccddf0", color:"#152235", padding:"10px 13px", fontFamily:"'DM Mono',monospace", fontSize:"0.82rem", width:"100%", outline:"none", marginTop:4, display:"block" };
-  const lbl = { fontFamily:"'DM Mono',monospace", fontSize:"0.6rem", letterSpacing:"1.5px", color:"#6a87a8", textTransform:"uppercase" };
-
-  function doLogin() {
-    const users = DB.getUsers();
-    if (!liUser.trim()||!liPass) { setLiErr("Udfyld begge felter"); return; }
-    if (!users[liUser]||users[liUser]!==btoa(liPass)) { setLiErr("Forkert brugernavn eller adgangskode"); return; }
-    DB.setSession(liUser); onLogin(liUser);
-  }
-  function doRegister() {
-    if (!rUser.trim()||!rPass) { setRErr("Udfyld alle felter"); return; }
-    if (rPass.length<4) { setRErr("Adgangskode skal være mindst 4 tegn"); return; }
-    if (rPass!==rPass2) { setRErr("Adgangskoderne matcher ikke"); return; }
-    const users = DB.getUsers();
-    if (users[rUser]) { setRErr("Brugernavnet er allerede taget"); return; }
-    users[rUser]=btoa(rPass); DB.saveUsers(users); DB.setSession(rUser); onLogin(rUser);
-  }
-
-  return (
-    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"linear-gradient(135deg,#e0eefc,#f2f7fc,#d4e8f8)"}}>
-      <div style={{background:"#fff",border:"1px solid #ccddf0",padding:"48px 44px",width:400,maxWidth:"95vw",boxShadow:"0 16px 48px rgba(26,111,196,.12)"}}>
-        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2.8rem",letterSpacing:5,color:"#1a6fc4",textAlign:"center"}}>Marathon<span style={{color:"#152235"}}>Log</span></div>
-        <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",letterSpacing:2,color:"#6a87a8",textAlign:"center",marginBottom:36}}>TRACK · ANALYSE · IMPROVE</div>
-
-        <div style={{display:"flex",borderBottom:"2px solid #ccddf0",marginBottom:24}}>
-          {["login","register"].map(t=>(
-            <button key={t} onClick={()=>setTab(t)} style={{flex:1,fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",letterSpacing:"1.5px",textTransform:"uppercase",padding:"9px",background:"transparent",border:"none",borderBottom:`2px solid ${tab===t?"#1a6fc4":"transparent"}`,color:tab===t?"#1a6fc4":"#6a87a8",cursor:"pointer",marginBottom:-2}}>
-              {t==="login"?"Log ind":"Opret konto"}
-            </button>
-          ))}
-        </div>
-
-        {tab==="login" ? (
-          <div>
-            <div style={{marginBottom:12}}><label style={lbl}>Brugernavn</label><input style={inp} value={liUser} onChange={e=>setLiUser(e.target.value)} placeholder="dit brugernavn" onKeyDown={e=>e.key==="Enter"&&doLogin()}/></div>
-            <div style={{marginBottom:16}}><label style={lbl}>Adgangskode</label><input type="password" style={inp} value={liPass} onChange={e=>setLiPass(e.target.value)} placeholder="••••••••" onKeyDown={e=>e.key==="Enter"&&doLogin()}/></div>
-            <button onClick={doLogin} style={{width:"100%",fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.1rem",letterSpacing:3,padding:13,background:"#1a6fc4",color:"#fff",border:"none",cursor:"pointer"}}>LOG IND</button>
-            {liErr && <div style={{color:"#d03030",fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",marginTop:10,textAlign:"center"}}>{liErr}</div>}
-          </div>
-        ) : (
-          <div>
-            <div style={{marginBottom:12}}><label style={lbl}>Brugernavn</label><input style={inp} value={rUser} onChange={e=>setRUser(e.target.value)} placeholder="vælg brugernavn"/></div>
-            <div style={{marginBottom:12}}><label style={lbl}>Adgangskode</label><input type="password" style={inp} value={rPass} onChange={e=>setRPass(e.target.value)} placeholder="mindst 4 tegn"/></div>
-            <div style={{marginBottom:16}}><label style={lbl}>Bekræft adgangskode</label><input type="password" style={inp} value={rPass2} onChange={e=>setRPass2(e.target.value)} placeholder="gentag adgangskode"/></div>
-            <button onClick={doRegister} style={{width:"100%",fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.1rem",letterSpacing:3,padding:13,background:"#1a6fc4",color:"#fff",border:"none",cursor:"pointer"}}>OPRET KONTO</button>
-            {rErr && <div style={{color:"#d03030",fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",marginTop:10,textAlign:"center"}}>{rErr}</div>}
-          </div>
-        )}
-      </div>
+      {sel.length>=2 && <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.58rem",color:"#6a87a8",marginTop:10,textAlign:"center"}}><span style={{color:"#1a8c50"}}>Grøn</span> = hurtigst ved punktet · <span style={{color:"#d03030"}}>Rød</span> = langsomst</div>}
     </div>
   );
 }
@@ -790,13 +715,13 @@ function Login({ onLogin }) {
 // ─── DELETE CONFIRM ──────────────────────────────────────────
 function DeleteModal({ race, onConfirm, onClose }) {
   return (
-    <div style={{position:"fixed",inset:0,background:"rgba(100,150,200,0.45)",backdropFilter:"blur(4px)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center"}} onClick={e=>{if(e.target===e.currentTarget)onClose()}}>
-      <div style={{background:"#fff",border:"1px solid #d03030",padding:"32px 36px",width:360,maxWidth:"95vw",boxShadow:"0 16px 48px rgba(200,50,50,.12)"}}>
-        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.7rem",letterSpacing:3,color:"#d03030",marginBottom:12}}>Slet Løb</div>
-        <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:"0.88rem",color:"#6a87a8",marginBottom:24}}>Er du sikker på at du vil slette <strong style={{color:"#152235"}}>{race?.name}</strong>? Dette kan ikke fortrydes.</p>
+    <div style={{position:"fixed",inset:0,background:"rgba(100,150,200,0.45)",backdropFilter:"blur(4px)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
+      <div style={{background:"#fff",borderRadius:16,padding:"28px 24px",width:340,maxWidth:"100%",boxShadow:"0 16px 48px rgba(200,50,50,.15)"}}>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:2,color:"#d03030",marginBottom:10}}>Slet løb</div>
+        <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:"0.9rem",color:"#6a87a8",marginBottom:22,lineHeight:1.5}}>Slet <strong style={{color:"#152235"}}>{race?.name}</strong>? Dette kan ikke fortrydes.</p>
         <div style={{display:"flex",gap:8}}>
-          <button onClick={onClose} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.7rem",padding:"10px 18px",border:"1px solid #ccddf0",background:"transparent",color:"#6a87a8",cursor:"pointer"}}>Annuller</button>
-          <button onClick={onConfirm} style={{flex:1,fontFamily:"'Bebas Neue',sans-serif",fontSize:"1rem",letterSpacing:3,padding:12,background:"#d03030",color:"#fff",border:"none",cursor:"pointer"}}>SLET</button>
+          <button onClick={onClose} style={{flex:1,fontFamily:"'DM Mono',monospace",fontSize:"0.75rem",padding:"13px",border:"1px solid #ccddf0",background:"#f2f7fc",borderRadius:10,color:"#6a87a8",cursor:"pointer"}}>Annuller</button>
+          <button onClick={onConfirm} style={{flex:1,fontFamily:"'Bebas Neue',sans-serif",fontSize:"1rem",letterSpacing:2,padding:"13px",background:"#d03030",color:"#fff",border:"none",borderRadius:10,cursor:"pointer"}}>SLET</button>
         </div>
       </div>
     </div>
@@ -805,92 +730,63 @@ function DeleteModal({ race, onConfirm, onClose }) {
 
 // ─── APP ─────────────────────────────────────────────────────
 function App() {
-  const [user, setUser] = useState(() => {
-    const s = DB.getSession();
-    if (s && DB.getUsers()[s]) return s;
-    return null;
-  });
-  const [races, setRaces] = useState(() => user ? DB.getRaces(user) : []);
+  const [races, setRaces] = useState(() => DB.get());
   const [tab, setTab] = useState("map");
-  const [raceModal, setRaceModal] = useState(null); // null | "add" | race obj
+  const [raceModal, setRaceModal] = useState(null);
   const [deleteModal, setDeleteModal] = useState(null);
 
-  useEffect(() => { if (user) setRaces(DB.getRaces(user)); }, [user]);
-
-  const saveRaces = useCallback((newRaces) => {
-    setRaces(newRaces);
-    if (user) DB.saveRaces(user, newRaces);
-  }, [user]);
-
-  function handleLogin(u) { setUser(u); setRaces(DB.getRaces(u)); }
-  function handleLogout() { DB.clearSession(); setUser(null); setRaces([]); setTab("map"); }
+  const saveRaces = useCallback((newRaces)=>{ setRaces(newRaces); DB.save(newRaces); },[]);
 
   function handleSaveRace(race) {
     const existing = races.find(r=>r.id===race.id);
-    saveRaces(existing ? races.map(r=>r.id===race.id?race:r) : [...races, race]);
+    saveRaces(existing ? races.map(r=>r.id===race.id?race:r) : [...races,race]);
     setRaceModal(null);
   }
-  function handleDeleteRace() {
-    if (deleteModal) { saveRaces(races.filter(r=>r.id!==deleteModal.id)); setDeleteModal(null); }
-  }
+  function handleDeleteRace() { if(deleteModal){ saveRaces(races.filter(r=>r.id!==deleteModal.id)); setDeleteModal(null); } }
 
   const TABS = [
-    {id:"map",label:"🌍 Verdenskort"},
-    {id:"majors",label:"⭐ Majors"},
-    {id:"races",label:"📋 Løb"},
-    {id:"splits",label:"📊 Statistik"},
+    {id:"map",label:"Kort",icon:"🌍"},
+    {id:"majors",label:"Majors",icon:"⭐"},
+    {id:"races",label:"Løb",icon:"📋"},
+    {id:"splits",label:"Statistik",icon:"📊"},
   ];
 
-  const bg = "#f2f7fc";
-  const pad = {padding:"32px 36px"};
-
-  if (!user) return <Login onLogin={handleLogin}/>;
+  const titles = {
+    map:["Mine ","løbelande"], majors:["World Marathon ","Majors"],
+    races:["",""], splits:["Tider & ","statistik"],
+  };
 
   return (
-    <div style={{minHeight:"100vh",background:bg,fontFamily:"'DM Sans',sans-serif",color:"#152235"}}>
-      {/* Header */}
-      <header style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 32px",borderBottom:"1px solid #ccddf0",position:"sticky",top:0,background:"rgba(242,247,252,0.97)",backdropFilter:"blur(12px)",zIndex:100,boxShadow:"0 2px 12px rgba(26,111,196,.07)",flexWrap:"wrap",gap:10}}>
-        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.7rem",letterSpacing:4,color:"#1a6fc4"}}>Marathon<span style={{color:"#152235"}}>Log</span></div>
-        <nav style={{display:"flex",gap:3}}>
-          {TABS.map(t=>(
-            <button key={t.id} onClick={()=>setTab(t.id)} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",letterSpacing:"1.5px",textTransform:"uppercase",padding:"7px 13px",background:tab===t.id?"#1a6fc4":"transparent",border:`1px solid ${tab===t.id?"#1a6fc4":"#ccddf0"}`,color:tab===t.id?"#fff":"#6a87a8",cursor:"pointer",whiteSpace:"nowrap"}}>
-              {t.label}
-            </button>
-          ))}
-        </nav>
-        <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <span style={{fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",color:"#6a87a8"}}>Logget ind som <strong style={{color:"#1a6fc4"}}>{user}</strong></span>
-          <button onClick={handleLogout} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.63rem",padding:"5px 11px",border:"1px solid #ccddf0",background:"transparent",color:"#6a87a8",cursor:"pointer"}}>Log ud</button>
-        </div>
+    <div style={{minHeight:"100vh",background:"#f2f7fc",fontFamily:"'DM Sans',sans-serif",color:"#152235",paddingBottom:"calc(72px + env(safe-area-inset-bottom))"}}>
+      {/* Top bar */}
+      <header style={{display:"flex",alignItems:"center",justifyContent:"center",padding:"calc(14px + env(safe-area-inset-top)) 20px 14px",borderBottom:"1px solid #e2ebf5",position:"sticky",top:0,background:"rgba(242,247,252,0.96)",backdropFilter:"blur(12px)",zIndex:100}}>
+        <BrandLogo size={1}/>
       </header>
 
-      <main style={{...pad}}>
-        {tab==="map" && (
-          <div>
-            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2.6rem",letterSpacing:3,marginBottom:22}}>Mine <span style={{color:"#1a6fc4"}}>Løbelande</span></div>
-            <WorldMap races={races}/>
+      {/* Content */}
+      <main style={{padding:"22px 18px"}}>
+        {tab!=="races" && (
+          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2.1rem",letterSpacing:2,marginBottom:18,lineHeight:1}}>
+            {titles[tab][0]}<span style={{color:"#1a6fc4"}}>{titles[tab][1]}</span>
           </div>
         )}
-        {tab==="majors" && (
-          <div>
-            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2.6rem",letterSpacing:3,marginBottom:22}}>World Marathon <span style={{color:"#1a6fc4"}}>Majors</span></div>
-            <MajorsView races={races}/>
-          </div>
-        )}
-        {tab==="races" && (
-          <RacesView races={races} onAdd={()=>setRaceModal("add")} onEdit={r=>setRaceModal(r)} onDelete={r=>setDeleteModal(r)}/>
-        )}
-        {tab==="splits" && (
-          <div>
-            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2.6rem",letterSpacing:3,marginBottom:22}}>Tider & <span style={{color:"#1a6fc4"}}>Statistik</span></div>
-            <StatsView races={races}/>
-          </div>
-        )}
+        {tab==="map" && <WorldMap races={races}/>}
+        {tab==="majors" && <MajorsView races={races}/>}
+        {tab==="races" && <RacesView races={races} onAdd={()=>setRaceModal("add")} onEdit={r=>setRaceModal(r)} onDelete={r=>setDeleteModal(r)}/>}
+        {tab==="splits" && <StatsView races={races}/>}
       </main>
 
-      {(raceModal==="add"||typeof raceModal==="object"&&raceModal!==null) && (
-        <RaceModal race={raceModal==="add"?null:raceModal} onSave={handleSaveRace} onClose={()=>setRaceModal(null)}/>
-      )}
+      {/* Bottom nav (app-style) */}
+      <nav style={{position:"fixed",bottom:0,left:0,right:0,display:"flex",background:"rgba(255,255,255,0.97)",backdropFilter:"blur(12px)",borderTop:"1px solid #e2ebf5",paddingBottom:"env(safe-area-inset-bottom)",zIndex:100,boxShadow:"0 -2px 16px rgba(26,111,196,.06)"}}>
+        {TABS.map(t=>(
+          <button key={t.id} onClick={()=>setTab(t.id)} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3,padding:"10px 4px 12px",background:"transparent",border:"none",cursor:"pointer"}}>
+            <span style={{fontSize:"1.3rem",filter:tab===t.id?"none":"grayscale(0.6) opacity(0.5)"}}>{t.icon}</span>
+            <span style={{fontFamily:"'DM Mono',monospace",fontSize:"0.58rem",letterSpacing:0.5,color:tab===t.id?"#1a6fc4":"#9bb0c8",fontWeight:tab===t.id?600:400}}>{t.label}</span>
+          </button>
+        ))}
+      </nav>
+
+      {(raceModal==="add" || (typeof raceModal==="object" && raceModal!==null)) && <RaceModal race={raceModal==="add"?null:raceModal} onSave={handleSaveRace} onClose={()=>setRaceModal(null)}/>}
       {deleteModal && <DeleteModal race={deleteModal} onConfirm={handleDeleteRace} onClose={()=>setDeleteModal(null)}/>}
     </div>
   );
@@ -899,52 +795,14 @@ function App() {
 // ─── RENDER ──────────────────────────────────────────────────
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(<App />);
-
-// Remove splash once rendered
-setTimeout(() => {
-  const s = document.getElementById("splash");
-  if (s) { s.style.opacity = "0"; s.style.transition = "opacity .3s"; setTimeout(()=>s.remove(), 300); }
-}, 400);
+setTimeout(()=>{ const s=document.getElementById("splash"); if(s){ s.style.opacity="0"; s.style.transition="opacity .3s"; setTimeout(()=>s.remove(),300); } }, 400);
 </script>
 
 <script>
-// ─── PWA: register service worker ───
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js").catch(err => console.log("SW registration failed:", err));
+    navigator.serviceWorker.register("./sw.js").catch(err => console.log("SW fejl:", err));
   });
-}
-
-// ─── PWA: install prompt ───
-let deferredPrompt = null;
-window.addEventListener("beforeinstallprompt", (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  // Don't show if already dismissed this session
-  if (sessionStorage.getItem("ml_install_dismissed")) return;
-  showInstallBanner();
-});
-
-function showInstallBanner() {
-  if (document.getElementById("install-banner")) return;
-  const banner = document.createElement("div");
-  banner.id = "install-banner";
-  banner.className = "install-banner";
-  banner.innerHTML = `
-    <span style="font-size:0.85rem">📲 Installer MarathonLog på din enhed</span>
-    <span style="display:flex;gap:8px">
-      <button class="no" id="ml-install-no">Senere</button>
-      <button class="yes" id="ml-install-yes">Installer</button>
-    </span>`;
-  document.body.appendChild(banner);
-  document.getElementById("ml-install-yes").onclick = async () => {
-    banner.remove();
-    if (deferredPrompt) { deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; }
-  };
-  document.getElementById("ml-install-no").onclick = () => {
-    banner.remove();
-    sessionStorage.setItem("ml_install_dismissed", "1");
-  };
 }
 </script>
 </body>

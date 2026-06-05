@@ -1,4 +1,4 @@
-const CACHE = "marathonlog-v1";
+const CACHE = "rtw-v3";
 const PRECACHE = [
   "./",
   "./index.html",
