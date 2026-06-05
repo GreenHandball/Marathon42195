@@ -173,6 +173,37 @@ function computeRace(checkpointsRaw) {
   return { cum, segs, total, half };
 }
 
+// Validate a race and return a list of human-readable problems.
+// Used both on import and to mark incomplete races in the UI.
+function validateRace(r) {
+  const problems = [];
+  if (!r || typeof r !== "object") return ["Ugyldigt løb"];
+  if (!r.name || !String(r.name).trim()) problems.push("Mangler navn");
+  if (!r.country) problems.push("Mangler land");
+  else if (!COUNTRY_ISO[r.country]) problems.push("Ukendt land");
+  if (!r.date) problems.push("Mangler dato");
+
+  const cps = Array.isArray(r.checkpointsRaw) ? r.checkpointsRaw : [];
+  const cum = cps.map(t2s);
+  // Need at least a finish time
+  if (cum[9] == null) problems.push("Mangler sluttid");
+  // Times must increase with distance (a later checkpoint can't be earlier)
+  let prev = null, outOfOrder = false;
+  for (let i = 0; i < 10; i++) {
+    const v = cum[i];
+    if (v == null) continue;
+    if (prev != null && v < prev) outOfOrder = true;
+    prev = v;
+  }
+  if (outOfOrder) problems.push("Tider er ikke stigende");
+  // Count how many of the 10 checkpoints are filled
+  const filled = cum.filter(v => v != null).length;
+  if (filled > 0 && filled < 10) problems.push(`Mangler ${10 - filled} mellemtid(er)`);
+  if (filled === 0) problems.push("Ingen tider angivet");
+
+  return problems;
+}
+
 // ─── STORAGE (single user, no login) ─────────────────────────
 const STORE_KEY = "rtw_races";
 const DB = {
@@ -229,12 +260,31 @@ function BrandLogo({ size = 1 }) {
 }
 
 // ─── WORLD MAP ───────────────────────────────────────────────
+// Continent view boxes: [ [west, south], [east, north] ] in lon/lat.
+// America split at the Panama/Colombia border per standard geography
+// (Central America + Caribbean = North America).
+const REGIONS = [
+  { key:"world",  label:"🌍 Verden",      bounds:null },
+  { key:"europe", label:"Europa",         bounds:[[-25, 34],[45, 72]] },
+  { key:"africa", label:"Afrika",         bounds:[[-20,-36],[52, 38]] },
+  { key:"asia",   label:"Asien",          bounds:[[40, 5],[150, 75]] },
+  { key:"namer",  label:"Nordamerika",    bounds:[[-170, 7],[-52, 72]] },
+  { key:"samer",  label:"Sydamerika",     bounds:[[-82,-56],[-34, 13]] },
+  { key:"ocean",  label:"Oceanien",       bounds:[[110,-48],[180,-8]] },
+];
+
 function WorldMap({ races }) {
   const svgRef = useRef(null);
+  const zoomRef = useRef(null);
+  const projRef = useRef(null);
+  const gRef = useRef(null);
   const [tooltip, setTooltip] = useState({ visible:false, text:"", x:0, y:0 });
   const worldRef = useRef(null);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState(false);
+  const [activeRegion, setActiveRegion] = useState("world");
+
+  const W = 960, H = 480;
 
   const visitedCodes = new Set();
   const codeToNames = {};
@@ -265,18 +315,26 @@ function WorldMap({ races }) {
     if (!ready || !svgRef.current || !worldRef.current) return;
     const d3 = window.d3, topojson = window.topojson;
     const world = worldRef.current;
-    const W = 960, H = 480;
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
     svg.attr("viewBox", `0 0 ${W} ${H}`);
+
     const proj = d3.geoNaturalEarth1().scale(150).translate([W/2,H/2]);
+    projRef.current = proj;
     const path = d3.geoPath().projection(proj);
+
+    // Ocean background (fixed, doesn't zoom)
     svg.append("rect").attr("width",W).attr("height",H).attr("fill","#b8d8f0");
+
+    // Zoomable group
+    const g = svg.append("g");
+    gRef.current = g;
+
     const graticule = d3.geoGraticule()();
-    svg.append("path").datum(graticule).attr("d",path).attr("fill","none").attr("stroke","#a0c8e8").attr("stroke-width",0.3);
+    g.append("path").datum(graticule).attr("d",path).attr("fill","none").attr("stroke","#a0c8e8").attr("stroke-width",0.3);
     const countries = topojson.feature(world, world.objects.countries);
     const borders = topojson.mesh(world, world.objects.countries, (a,b)=>a!==b);
-    svg.selectAll(".country").data(countries.features).enter().append("path")
+    g.selectAll(".country").data(countries.features).enter().append("path")
       .attr("class","country").attr("d",path)
       .attr("fill", d => visitedCodes.has(+d.id) ? "#1a6fc4" : "#daeef8")
       .attr("stroke","#fff").attr("stroke-width",0.3)
@@ -290,14 +348,50 @@ function WorldMap({ races }) {
         setTooltip({ visible:true, text:`${names[0]} — ${cnt} løb`, x:cx+12, y:cy+12 });
       })
       .on("mouseleave touchend", ()=>setTooltip(t=>({...t,visible:false})));
-    svg.append("path").datum(borders).attr("d",path).attr("fill","none").attr("stroke","#fff").attr("stroke-width",0.5);
+    g.append("path").datum(borders).attr("d",path).attr("fill","none").attr("stroke","#fff").attr("stroke-width",0.5);
+
+    // Zoom + pan (pinch on touch, scroll/drag on desktop)
+    const zoom = d3.zoom()
+      .scaleExtent([1, 12])
+      .translateExtent([[0,0],[W,H]])
+      .on("zoom", (event) => { g.attr("transform", event.transform); });
+    zoomRef.current = zoom;
+    svg.call(zoom);
+    // double-tap / double-click to reset
+    svg.on("dblclick.zoom", null);
+    svg.on("dblclick", () => zoomToRegion("world"));
   }, [ready, races]);
+
+  // Zoom the map to a region's bounding box
+  function zoomToRegion(key) {
+    setActiveRegion(key);
+    const d3 = window.d3;
+    if (!d3 || !svgRef.current || !zoomRef.current || !projRef.current) return;
+    const region = REGIONS.find(r=>r.key===key);
+    const svg = d3.select(svgRef.current);
+    if (!region || !region.bounds) {
+      svg.transition().duration(600).call(zoomRef.current.transform, d3.zoomIdentity);
+      return;
+    }
+    const proj = projRef.current;
+    // project the four corners to pixel space
+    const [[w,s],[e,n]] = region.bounds;
+    const pts = [proj([w,n]), proj([e,n]), proj([e,s]), proj([w,s])].filter(Boolean);
+    if (pts.length < 4) return;
+    const xs = pts.map(p=>p[0]), ys = pts.map(p=>p[1]);
+    const x0=Math.min(...xs), x1=Math.max(...xs), y0=Math.min(...ys), y1=Math.max(...ys);
+    const bw = x1-x0, bh = y1-y0;
+    const k = Math.max(1, Math.min(12, 0.9 / Math.max(bw/W, bh/H)));
+    const tx = (x0+x1)/2, ty = (y0+y1)/2;
+    const transform = d3.zoomIdentity.translate(W/2, H/2).scale(k).translate(-tx, -ty);
+    svg.transition().duration(600).call(zoomRef.current.transform, transform);
+  }
 
   const visited = new Set(races.map(r=>r.country).filter(Boolean));
 
   return (
     <div>
-      <div style={{display:"flex",gap:28,marginBottom:18,flexWrap:"wrap"}}>
+      <div style={{display:"flex",gap:28,marginBottom:14,flexWrap:"wrap"}}>
         {[{val:visited.size,lbl:"Lande"},{val:races.length,lbl:"Løb i alt"}].map(s=>(
           <div key={s.lbl}>
             <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2.2rem",color:"#1a6fc4",lineHeight:1}}>{s.val}</div>
@@ -305,12 +399,22 @@ function WorldMap({ races }) {
           </div>
         ))}
       </div>
+
+      {/* Continent quick-zoom buttons */}
+      <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>
+        {REGIONS.map(reg=>(
+          <button key={reg.key} onClick={()=>zoomToRegion(reg.key)} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.64rem",letterSpacing:0.3,padding:"7px 12px",borderRadius:20,background:activeRegion===reg.key?"#1a6fc4":"#fff",border:`1px solid ${activeRegion===reg.key?"#1a6fc4":"#ccddf0"}`,color:activeRegion===reg.key?"#fff":"#6a87a8",cursor:"pointer",whiteSpace:"nowrap"}}>{reg.label}</button>
+        ))}
+      </div>
+
       <div className="map-outer" style={{position:"relative",background:"#b8d8f0",borderRadius:10,overflow:"hidden",border:"1px solid #ccddf0",boxShadow:"0 4px 20px rgba(26,111,196,.1)"}}>
         {!ready && !error && <div style={{padding:40,textAlign:"center",fontFamily:"'DM Mono',monospace",fontSize:"0.75rem",color:"#6a87a8"}}>Indlæser verdenskort…</div>}
         {error && <div style={{padding:40,textAlign:"center",fontFamily:"'DM Mono',monospace",fontSize:"0.75rem",color:"#6a87a8"}}>Kortet kunne ikke indlæses. Tjek din internetforbindelse.</div>}
-        {ready && <svg ref={svgRef} style={{width:"100%",height:"auto",display:"block"}} />}
+        {ready && <svg ref={svgRef} style={{width:"100%",height:"auto",display:"block",touchAction:"none"}} />}
         {tooltip.visible && <div style={{position:"absolute",top:tooltip.y,left:tooltip.x,background:"#fff",border:"1px solid #1a6fc4",padding:"6px 12px",fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",pointerEvents:"none",whiteSpace:"nowrap",boxShadow:"0 4px 12px rgba(26,111,196,.15)",zIndex:10,borderRadius:4}}>{tooltip.text}</div>}
+        {ready && <div style={{position:"absolute",bottom:8,right:10,fontFamily:"'DM Mono',monospace",fontSize:"0.55rem",color:"#5a7a98",background:"rgba(255,255,255,0.75)",padding:"3px 8px",borderRadius:6,pointerEvents:"none"}}>Knib for at zoome · træk for at flytte</div>}
       </div>
+
       <div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:14}}>
         {[...visited].map(c=>{
           const n = races.filter(r=>r.country===c).length;
@@ -477,16 +581,20 @@ function RaceModal({ race, onSave, onClose }) {
 }
 
 // ─── RACES VIEW ──────────────────────────────────────────────
-function RacesView({ races, onAdd, onEdit, onDelete }) {
+function RacesView({ races, onAdd, onEdit, onDelete, onExport, onImport }) {
   const sorted = [...races].sort((a,b)=>new Date(a.date)-new Date(b.date));
   const times = races.map(r=>t2s(r.totalTime)).filter(Boolean);
   const pb = times.length ? Math.min(...times) : null;
 
   return (
     <div>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18,gap:12}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,gap:12}}>
         <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2.2rem",letterSpacing:2}}>Alle <span style={{color:"#1a6fc4"}}>løb</span></div>
         <button onClick={onAdd} style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"0.95rem",letterSpacing:2,padding:"11px 20px",background:"#1a6fc4",color:"#fff",border:"none",borderRadius:10,cursor:"pointer",whiteSpace:"nowrap"}}>+ Tilføj</button>
+      </div>
+      <div style={{display:"flex",gap:8,marginBottom:18}}>
+        <button onClick={onExport} style={{flex:1,fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",letterSpacing:0.5,padding:"10px",border:"1px solid #ccddf0",background:"#fff",borderRadius:8,color:"#1a6fc4",cursor:"pointer"}}>⬇ Gem backup</button>
+        <button onClick={onImport} style={{flex:1,fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",letterSpacing:0.5,padding:"10px",border:"1px solid #ccddf0",background:"#fff",borderRadius:8,color:"#1a6fc4",cursor:"pointer"}}>⬆ Indlæs backup</button>
       </div>
       {races.length===0 ? (
         <div style={{textAlign:"center",padding:"50px 20px",fontFamily:"'DM Mono',monospace",fontSize:"0.78rem",color:"#6a87a8"}}>Ingen løb endnu — tryk "Tilføj" for at starte 🏃</div>
@@ -494,26 +602,33 @@ function RacesView({ races, onAdd, onEdit, onDelete }) {
         <div style={{display:"flex",flexDirection:"column",gap:10}}>
           {sorted.map((r,i)=>{
             const s=t2s(r.totalTime); const isPB=s&&s===pb;
+            const flagged = r.needsReview;
             return (
-              <div key={r.id} style={{background:"#fff",border:"1px solid #e2ebf5",borderRadius:12,padding:"14px 16px",boxShadow:"0 1px 6px rgba(26,111,196,.05)"}}>
+              <div key={r.id} style={{background:flagged?"#fff8ec":"#fff",border:`1px solid ${flagged?"#f0d49a":"#e2ebf5"}`,borderRadius:12,padding:"14px 16px",boxShadow:"0 1px 6px rgba(26,111,196,.05)"}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}}>
                   <div style={{minWidth:0,flex:1}}>
                     <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
+                      {flagged && <span style={{fontSize:"0.85rem"}} title="Mangler oplysninger">⚠️</span>}
                       {r.major && <span style={{fontSize:"0.7rem"}}>⭐</span>}
-                      <span style={{fontFamily:"'DM Sans',sans-serif",fontWeight:600,fontSize:"1rem"}}>{r.name}</span>
+                      <span style={{fontFamily:"'DM Sans',sans-serif",fontWeight:600,fontSize:"1rem"}}>{r.name||"(uden navn)"}</span>
                       {isPB && <span style={{fontFamily:"'DM Mono',monospace",fontSize:"0.55rem",letterSpacing:1,padding:"2px 7px",background:"#c08820",color:"#fff",borderRadius:4}}>PB</span>}
                     </div>
                     <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",color:"#6a87a8",marginTop:4}}>
                       {COUNTRY_FLAG[r.country]||""} {r.country||"–"} · {fmtDate(r.date)}
                     </div>
+                    {flagged && r.reviewNotes && r.reviewNotes.length>0 && (
+                      <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",color:"#c08820",marginTop:6,lineHeight:1.4}}>
+                        Skal rettes: {r.reviewNotes.join(" · ")}
+                      </div>
+                    )}
                   </div>
                   <div style={{textAlign:"right",flexShrink:0}}>
                     <div style={{fontFamily:"'DM Mono',monospace",fontSize:"1.1rem",color:"#1a6fc4",fontWeight:500}}>{r.totalTime||"–"}</div>
                     <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",color:"#6a87a8"}}>{paceFmt(42.195,s)}</div>
                   </div>
                 </div>
-                <div style={{display:"flex",gap:8,marginTop:12,borderTop:"1px solid #f0f5fa",paddingTop:10}}>
-                  <button onClick={()=>onEdit(r)} style={{flex:1,fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",letterSpacing:0.5,padding:"8px",border:"1px solid #ccddf0",background:"#f2f7fc",borderRadius:8,color:"#1a6fc4",cursor:"pointer"}}>Rediger</button>
+                <div style={{display:"flex",gap:8,marginTop:12,borderTop:`1px solid ${flagged?"#f3e3c2":"#f0f5fa"}`,paddingTop:10}}>
+                  <button onClick={()=>onEdit(r)} style={{flex:1,fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",letterSpacing:0.5,padding:"8px",border:"1px solid #ccddf0",background:flagged?"#fff":"#f2f7fc",borderRadius:8,color:"#1a6fc4",cursor:"pointer"}}>{flagged?"Ret nu":"Rediger"}</button>
                   <button onClick={()=>onDelete(r)} style={{flex:1,fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",letterSpacing:0.5,padding:"8px",border:"1px solid #f2d0d0",background:"#fdf5f5",borderRadius:8,color:"#d03030",cursor:"pointer"}}>Slet</button>
                 </div>
               </div>
@@ -776,21 +891,167 @@ function DeleteModal({ race, onConfirm, onClose }) {
   );
 }
 
+// ─── IMPORT RESULT MODAL ─────────────────────────────────────
+function ImportResultModal({ result, onClose }) {
+  const r = result;
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(100,150,200,0.45)",backdropFilter:"blur(4px)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:18}} onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
+      <div style={{background:"#fff",borderRadius:16,padding:"28px 24px",width:440,maxWidth:"100%",maxHeight:"86vh",overflowY:"auto",boxShadow:"0 16px 48px rgba(26,111,196,.18)"}}>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:2,color:"#1a6fc4",marginBottom:14}}>Import</div>
+
+        {r.error ? (
+          <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:"0.9rem",color:"#d03030",marginBottom:20,lineHeight:1.5}}>{r.error}</p>
+        ) : (
+          <>
+            <div style={{display:"flex",gap:8,marginBottom:18}}>
+              <div style={{flex:1,background:"#f0f7ff",border:"1px solid #c0d8f5",borderRadius:10,padding:"12px 10px",textAlign:"center"}}>
+                <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.8rem",color:"#1a8c50",lineHeight:1}}>{r.imported}</div>
+                <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.55rem",letterSpacing:0.5,color:"#6a87a8",textTransform:"uppercase",marginTop:2}}>OK</div>
+              </div>
+              <div style={{flex:1,background:"#fff8ec",border:"1px solid #f0d49a",borderRadius:10,padding:"12px 10px",textAlign:"center"}}>
+                <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.8rem",color:"#c08820",lineHeight:1}}>{r.flagged}</div>
+                <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.55rem",letterSpacing:0.5,color:"#6a87a8",textTransform:"uppercase",marginTop:2}}>Markeret</div>
+              </div>
+              {r.skipped > 0 && (
+                <div style={{flex:1,background:"#f5f5f5",border:"1px solid #ddd",borderRadius:10,padding:"12px 10px",textAlign:"center"}}>
+                  <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.8rem",color:"#999",lineHeight:1}}>{r.skipped}</div>
+                  <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.55rem",letterSpacing:0.5,color:"#6a87a8",textTransform:"uppercase",marginTop:2}}>Sprunget</div>
+                </div>
+              )}
+            </div>
+
+            {r.flagged > 0 && (
+              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:"0.82rem",color:"#6a87a8",marginBottom:12,lineHeight:1.5}}>
+                Løb markeret med ⚠️ mangler oplysninger. De er importeret, men du bør rette dem under "Løb", så statistikken bliver korrekt.
+              </p>
+            )}
+
+            {/* Details list */}
+            <div style={{display:"flex",flexDirection:"column",gap:6,maxHeight:280,overflowY:"auto"}}>
+              {r.details.filter(d=>d.status!=="ok").map((d,i)=>(
+                <div key={i} style={{background:d.status==="flagged"?"#fff8ec":"#f5f5f5",border:`1px solid ${d.status==="flagged"?"#f0d49a":"#ddd"}`,borderRadius:8,padding:"10px 12px"}}>
+                  <div style={{fontFamily:"'DM Sans',sans-serif",fontWeight:600,fontSize:"0.85rem",marginBottom:3}}>{d.status==="flagged"?"⚠️ ":"⊘ "}{d.name}</div>
+                  <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",color:"#6a87a8"}}>{d.problems.join(" · ")}</div>
+                </div>
+              ))}
+              {r.flagged===0 && r.skipped===0 && (
+                <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.72rem",color:"#1a8c50",textAlign:"center",padding:10}}>Alle løb importeret uden problemer ✓</div>
+              )}
+            </div>
+          </>
+        )}
+
+        <button onClick={onClose} style={{width:"100%",marginTop:18,fontFamily:"'Bebas Neue',sans-serif",fontSize:"1rem",letterSpacing:2,padding:"13px",background:"#1a6fc4",color:"#fff",border:"none",borderRadius:10,cursor:"pointer"}}>OK</button>
+      </div>
+    </div>
+  );
+}
+
 // ─── APP ─────────────────────────────────────────────────────
 function App() {
   const [races, setRaces] = useState(() => DB.get());
   const [tab, setTab] = useState("map");
   const [raceModal, setRaceModal] = useState(null);
   const [deleteModal, setDeleteModal] = useState(null);
+  const [importResult, setImportResult] = useState(null); // {imported, flagged, skipped, details}
+  const fileInputRef = useRef(null);
 
   const saveRaces = useCallback((newRaces)=>{ setRaces(newRaces); DB.save(newRaces); },[]);
 
   function handleSaveRace(race) {
+    // Re-validate; clear the review flag if the race is now complete
+    const problems = validateRace(race);
+    race.needsReview = problems.length > 0;
+    race.reviewNotes = problems;
     const existing = races.find(r=>r.id===race.id);
     saveRaces(existing ? races.map(r=>r.id===race.id?race:r) : [...races,race]);
     setRaceModal(null);
   }
   function handleDeleteRace() { if(deleteModal){ saveRaces(races.filter(r=>r.id!==deleteModal.id)); setDeleteModal(null); } }
+
+  // ── EXPORT: download all races as a JSON backup file ──
+  function handleExport() {
+    const payload = {
+      app: "Running The World",
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      races: races,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const stamp = new Date().toISOString().slice(0,10);
+    a.href = url;
+    a.download = `running-the-world-backup-${stamp}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  }
+
+  // ── IMPORT: read file, validate each race, flag incomplete ones ──
+  function handleImportFile(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        const incoming = Array.isArray(data) ? data : (Array.isArray(data.races) ? data.races : null);
+        if (!incoming) { setImportResult({ error: "Filen ser ikke ud til at være en gyldig backup." }); return; }
+
+        const existingIds = new Set(races.map(r=>r.id));
+        let imported = 0, flagged = 0, skipped = 0;
+        const details = [];
+        const toAdd = [];
+
+        incoming.forEach((raw, idx) => {
+          // Build a normalized race object
+          const r = {
+            id: raw.id && !existingIds.has(raw.id) ? raw.id : uid(),
+            name: raw.name || "",
+            country: raw.country || "",
+            date: raw.date || "",
+            major: raw.major || "",
+            checkpointsRaw: Array.isArray(raw.checkpointsRaw)
+              ? raw.checkpointsRaw.slice(0,10).concat(Array(10).fill("")).slice(0,10)
+              : Array(10).fill(""),
+            totalTime: raw.totalTime || null,
+          };
+          // recompute totalTime from finish checkpoint if missing
+          const finishSec = t2s(r.checkpointsRaw[9]);
+          if (finishSec != null) r.totalTime = s2t(finishSec);
+
+          const problems = validateRace(r);
+          // Skip totally empty / nameless garbage
+          if (!r.name.trim() && problems.includes("Ingen tider angivet")) {
+            skipped++;
+            details.push({ name: `Løb #${idx+1}`, status:"skipped", problems:["Tomt løb — sprunget over"] });
+            return;
+          }
+          if (problems.length > 0) {
+            r.needsReview = true;
+            r.reviewNotes = problems;
+            flagged++;
+            details.push({ name: r.name || `Løb #${idx+1}`, status:"flagged", problems });
+          } else {
+            r.needsReview = false;
+            r.reviewNotes = [];
+            imported++;
+            details.push({ name: r.name, status:"ok", problems:[] });
+          }
+          toAdd.push(r);
+        });
+
+        if (toAdd.length) saveRaces([...races, ...toAdd]);
+        setImportResult({ imported, flagged, skipped, details });
+      } catch (err) {
+        setImportResult({ error: "Kunne ikke læse filen. Er det en gyldig backup-fil?" });
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = ""; // allow re-importing same file
+  }
 
   const TABS = [
     {id:"map",label:"Kort",icon:"🌍"},
@@ -820,9 +1081,12 @@ function App() {
         )}
         {tab==="map" && <WorldMap races={races}/>}
         {tab==="majors" && <MajorsView races={races}/>}
-        {tab==="races" && <RacesView races={races} onAdd={()=>setRaceModal("add")} onEdit={r=>setRaceModal(r)} onDelete={r=>setDeleteModal(r)}/>}
+        {tab==="races" && <RacesView races={races} onAdd={()=>setRaceModal("add")} onEdit={r=>setRaceModal(r)} onDelete={r=>setDeleteModal(r)} onExport={handleExport} onImport={()=>fileInputRef.current && fileInputRef.current.click()}/>}
         {tab==="splits" && <StatsView races={races}/>}
       </main>
+
+      {/* Hidden file input for import */}
+      <input ref={fileInputRef} type="file" accept="application/json,.json" style={{display:"none"}} onChange={handleImportFile}/>
 
       {/* Bottom nav (app-style) */}
       <nav style={{position:"fixed",bottom:0,left:0,right:0,display:"flex",background:"rgba(255,255,255,0.97)",backdropFilter:"blur(12px)",borderTop:"1px solid #e2ebf5",paddingBottom:"env(safe-area-inset-bottom)",zIndex:100,boxShadow:"0 -2px 16px rgba(26,111,196,.06)"}}>
@@ -836,6 +1100,7 @@ function App() {
 
       {(raceModal==="add" || (typeof raceModal==="object" && raceModal!==null)) && <RaceModal race={raceModal==="add"?null:raceModal} onSave={handleSaveRace} onClose={()=>setRaceModal(null)}/>}
       {deleteModal && <DeleteModal race={deleteModal} onConfirm={handleDeleteRace} onClose={()=>setDeleteModal(null)}/>}
+      {importResult && <ImportResultModal result={importResult} onClose={()=>setImportResult(null)}/>}
     </div>
   );
 }
