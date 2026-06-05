@@ -423,7 +423,7 @@ function RaceModal({ race, onSave, onClose }) {
           {CHECKPOINTS.map((cp,i)=>(
             <div key={i} style={i===9?{gridColumn:"1 / -1"}:{}}>
               <label style={{...lbl, color:i===4?"#1a6fc4":i===9?"#c08820":"#6a87a8"}}>{cp.label}{i===4?" ⭐":i===9?" 🏁":""}</label>
-              <input style={{...inp, ...(i===4?{borderColor:"#1a6fc4"}:i===9?{borderColor:"#c08820"}:{})}} placeholder="t:mm:ss" value={form.cps[i]||""} type="text" inputMode="numeric" pattern="[0-9:]*" onChange={e=>{const c=[...form.cps];c[i]=formatTimeInput(e.target.value);setForm(f=>({...f,cps:c}));}}/>
+              <input style={{...inp, ...(i===4?{borderColor:"#1a6fc4"}:i===9?{borderColor:"#c08820"}:{})}} placeholder="t:mm:ss" value={form.cps[i]||""} type="text" inputMode="text" autoComplete="off" autoCapitalize="off" onChange={e=>{const c=[...form.cps];c[i]=formatTimeInput(e.target.value);setForm(f=>({...f,cps:c}));}}/>
             </div>
           ))}
         </div>
