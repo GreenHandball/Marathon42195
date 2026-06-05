@@ -358,34 +358,12 @@ function MajorsView({ races }) {
 
 // ─── RACE FORM MODAL ─────────────────────────────────────────
 function RaceModal({ race, onSave, onClose }) {
-  const [form, setForm] = useState(() => {
-    if (race) return { name:race.name||"", country:race.country||"", date:race.date||"", major:race.major||"", cps: race.checkpointsRaw || Array(10).fill("") };
-    return { name:"", country:"", date:"", major:"", cps: Array(10).fill("") };
-  });
-  const [err, setErr] = useState("");
-
-  function handleSave() {
-    if (!form.name.trim()) { setErr("Angiv løbsnavn"); return; }
-    // total time = the final checkpoint
-    const total = t2s(form.cps[9]);
-    onSave({
-      id: race ? race.id : uid(),
-      name: form.name.trim(), country: form.country, date: form.date, major: form.major,
-      checkpointsRaw: form.cps,
-      totalTime: total ? s2t(total) : null,
-    });
-  }
-
-  const inp = { background:"#f2f7fc", border:"1px solid #ccddf0", borderRadius:8, color:"#152235", padding:"11px 12px", fontFamily:"'DM Mono',monospace", fontSize:"16px", width:"100%", outline:"none", boxSizing:"border-box" };
-  const lbl = { display:"block", fontFamily:"'DM Mono',monospace", fontSize:"0.6rem", letterSpacing:"1.5px", color:"#6a87a8", textTransform:"uppercase", marginBottom:5 };
-
-  // Each checkpoint is entered as separate Hours / Minutes / Seconds numeric boxes,
-  // so no colon typing is ever needed. We parse any existing saved "h:mm:ss" into parts.
+  // Parse a saved "h:mm:ss" / "mm:ss" string into {h,m,s} parts
   function parseToHMS(str) {
     if (!str) return { h:"", m:"", s:"" };
     const p = String(str).split(":");
-    if (p.length === 3) return { h:p[0], m:p[1], s:p[2] };
-    if (p.length === 2) return { h:"", m:p[0], s:p[1] };
+    if (p.length === 3) return { h:p[0], m:String(parseInt(p[1])||0), s:String(parseInt(p[2])||0) };
+    if (p.length === 2) return { h:"", m:p[0], s:String(parseInt(p[1])||0) };
     return { h:"", m:"", s:p[0]||"" };
   }
   function hmsToStr({ h, m, s }) {
@@ -394,6 +372,30 @@ function RaceModal({ race, onSave, onClose }) {
     if (H > 0) return `${H}:${String(M).padStart(2,"0")}:${String(S).padStart(2,"0")}`;
     return `${M}:${String(S).padStart(2,"0")}`;
   }
+
+  const [form, setForm] = useState(() => {
+    const cpsStr = race ? (race.checkpointsRaw || Array(10).fill("")) : Array(10).fill("");
+    return {
+      name: race?.name||"", country: race?.country||"", date: race?.date||"", major: race?.major||"",
+      cps: cpsStr.map(parseToHMS), // store as {h,m,s} objects
+    };
+  });
+  const [err, setErr] = useState("");
+
+  function handleSave() {
+    if (!form.name.trim()) { setErr("Angiv løbsnavn"); return; }
+    const cpsStr = form.cps.map(hmsToStr);
+    const total = t2s(cpsStr[9]);
+    onSave({
+      id: race ? race.id : uid(),
+      name: form.name.trim(), country: form.country, date: form.date, major: form.major,
+      checkpointsRaw: cpsStr,
+      totalTime: total ? s2t(total) : null,
+    });
+  }
+
+  const inp = { background:"#f2f7fc", border:"1px solid #ccddf0", borderRadius:8, color:"#152235", padding:"11px 12px", fontFamily:"'DM Mono',monospace", fontSize:"16px", width:"100%", outline:"none", boxSizing:"border-box" };
+  const lbl = { display:"block", fontFamily:"'DM Mono',monospace", fontSize:"0.6rem", letterSpacing:"1.5px", color:"#6a87a8", textTransform:"uppercase", marginBottom:5 };
 
   return (
     <div style={{position:"fixed",inset:0,background:"rgba(100,150,200,0.45)",backdropFilter:"blur(4px)",zIndex:200,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
@@ -427,13 +429,15 @@ function RaceModal({ race, onSave, onClose }) {
 
         <div style={{display:"flex",flexDirection:"column",gap:12}}>
           {CHECKPOINTS.map((cp,i)=>{
-            const hms = parseToHMS(form.cps[i]);
+            const hms = form.cps[i];
             const accent = i===4?"#1a6fc4":i===9?"#c08820":null;
             const boxStyle = {...inp, textAlign:"center", padding:"11px 4px", ...(accent?{borderColor:accent}:{})};
             const setPart = (part,val)=>{
-              const v = val.replace(/\D/g,"").slice(0, part==="h"?2:2);
-              const next = {...hms, [part]:v};
-              const c=[...form.cps]; c[i]=hmsToStr(next); setForm(f=>({...f,cps:c}));
+              const v = val.replace(/\D/g,"").slice(0,2);
+              setForm(f=>{
+                const cps = f.cps.map((x,idx)=> idx===i ? {...x, [part]:v} : x);
+                return {...f, cps};
+              });
             };
             return (
               <div key={i} style={{display:"flex",alignItems:"center",gap:10,...(accent?{background:i===4?"rgba(26,111,196,0.05)":"rgba(192,136,32,0.06)",margin:"0 -8px",padding:"8px",borderRadius:8}:{})}}>

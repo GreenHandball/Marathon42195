@@ -1,4 +1,4 @@
-const CACHE = "rtw-v6";
+const CACHE = "rtw-v7";
 const PRECACHE = [
   "./",
   "./index.html",
