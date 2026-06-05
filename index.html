@@ -379,14 +379,20 @@ function RaceModal({ race, onSave, onClose }) {
   const inp = { background:"#f2f7fc", border:"1px solid #ccddf0", borderRadius:8, color:"#152235", padding:"11px 12px", fontFamily:"'DM Mono',monospace", fontSize:"16px", width:"100%", outline:"none", boxSizing:"border-box" };
   const lbl = { display:"block", fontFamily:"'DM Mono',monospace", fontSize:"0.6rem", letterSpacing:"1.5px", color:"#6a87a8", textTransform:"uppercase", marginBottom:5 };
 
-  // Auto-insert colons as the user types digits, so a numeric keypad is enough.
-  // Keeps any colons the user types manually; otherwise builds h:mm:ss / mm:ss from digits.
-  function formatTimeInput(raw) {
-    if (raw.includes(":")) return raw; // user typed colons themselves — leave it
-    const d = raw.replace(/\D/g, "").slice(0, 6); // max 6 digits (h mm ss)
-    if (d.length <= 2) return d;
-    if (d.length <= 4) return d.slice(0, d.length - 2) + ":" + d.slice(-2);
-    return d.slice(0, d.length - 4) + ":" + d.slice(-4, -2) + ":" + d.slice(-2);
+  // Each checkpoint is entered as separate Hours / Minutes / Seconds numeric boxes,
+  // so no colon typing is ever needed. We parse any existing saved "h:mm:ss" into parts.
+  function parseToHMS(str) {
+    if (!str) return { h:"", m:"", s:"" };
+    const p = String(str).split(":");
+    if (p.length === 3) return { h:p[0], m:p[1], s:p[2] };
+    if (p.length === 2) return { h:"", m:p[0], s:p[1] };
+    return { h:"", m:"", s:p[0]||"" };
+  }
+  function hmsToStr({ h, m, s }) {
+    const H = parseInt(h)||0, M = parseInt(m)||0, S = parseInt(s)||0;
+    if (!h && !m && !s) return ""; // empty checkpoint
+    if (H > 0) return `${H}:${String(M).padStart(2,"0")}:${String(S).padStart(2,"0")}`;
+    return `${M}:${String(S).padStart(2,"0")}`;
   }
 
   return (
@@ -417,15 +423,31 @@ function RaceModal({ race, onSave, onClose }) {
         </div>
 
         <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.1rem",letterSpacing:1.5,color:"#1a6fc4",margin:"18px 0 4px"}}>Tider undervejs</div>
-        <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",color:"#6a87a8",marginBottom:12,lineHeight:1.5}}>Skriv den tid uret viste ved hvert punkt (kumulativ tid). Du kan bare taste tallene — fx <b>14530</b> bliver til <b>1:45:30</b>. Splits beregnes automatisk.</div>
+        <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",color:"#6a87a8",marginBottom:14,lineHeight:1.5}}>Indtast den tid uret viste ved hvert punkt (kumulativ tid) i felterne for timer, minutter og sekunder. Splits beregnes automatisk.</div>
 
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-          {CHECKPOINTS.map((cp,i)=>(
-            <div key={i} style={i===9?{gridColumn:"1 / -1"}:{}}>
-              <label style={{...lbl, color:i===4?"#1a6fc4":i===9?"#c08820":"#6a87a8"}}>{cp.label}{i===4?" ⭐":i===9?" 🏁":""}</label>
-              <input style={{...inp, ...(i===4?{borderColor:"#1a6fc4"}:i===9?{borderColor:"#c08820"}:{})}} placeholder="t:mm:ss" value={form.cps[i]||""} type="text" inputMode="text" autoComplete="off" autoCapitalize="off" onChange={e=>{const c=[...form.cps];c[i]=formatTimeInput(e.target.value);setForm(f=>({...f,cps:c}));}}/>
-            </div>
-          ))}
+        <div style={{display:"flex",flexDirection:"column",gap:12}}>
+          {CHECKPOINTS.map((cp,i)=>{
+            const hms = parseToHMS(form.cps[i]);
+            const accent = i===4?"#1a6fc4":i===9?"#c08820":null;
+            const boxStyle = {...inp, textAlign:"center", padding:"11px 4px", ...(accent?{borderColor:accent}:{})};
+            const setPart = (part,val)=>{
+              const v = val.replace(/\D/g,"").slice(0, part==="h"?2:2);
+              const next = {...hms, [part]:v};
+              const c=[...form.cps]; c[i]=hmsToStr(next); setForm(f=>({...f,cps:c}));
+            };
+            return (
+              <div key={i} style={{display:"flex",alignItems:"center",gap:10,...(accent?{background:i===4?"rgba(26,111,196,0.05)":"rgba(192,136,32,0.06)",margin:"0 -8px",padding:"8px",borderRadius:8}:{})}}>
+                <label style={{...lbl, marginBottom:0, flex:"0 0 96px", color:accent||"#6a87a8"}}>{cp.label}{i===4?" ⭐":i===9?" 🏁":""}</label>
+                <div style={{display:"flex",alignItems:"center",gap:5,flex:1}}>
+                  <input style={{...boxStyle,flex:"0 0 46px"}} placeholder="t" value={hms.h} type="text" inputMode="numeric" pattern="[0-9]*" onChange={e=>setPart("h",e.target.value)}/>
+                  <span style={{color:"#9bb0c8",fontFamily:"'DM Mono',monospace",fontWeight:600}}>:</span>
+                  <input style={{...boxStyle,flex:1}} placeholder="mm" value={hms.m} type="text" inputMode="numeric" pattern="[0-9]*" onChange={e=>setPart("m",e.target.value)}/>
+                  <span style={{color:"#9bb0c8",fontFamily:"'DM Mono',monospace",fontWeight:600}}>:</span>
+                  <input style={{...boxStyle,flex:1}} placeholder="ss" value={hms.s} type="text" inputMode="numeric" pattern="[0-9]*" onChange={e=>setPart("s",e.target.value)}/>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {err && <div style={{color:"#d03030",fontFamily:"'DM Mono',monospace",fontSize:"0.7rem",marginTop:10}}>{err}</div>}
