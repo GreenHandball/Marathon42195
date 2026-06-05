@@ -358,39 +358,57 @@ function MajorsView({ races }) {
 
 // ─── RACE FORM MODAL ─────────────────────────────────────────
 function RaceModal({ race, onSave, onClose }) {
-  // Parse a saved "h:mm:ss" / "mm:ss" string into {h,m,s} parts
-  function parseToHMS(str) {
-    if (!str) return { h:"", m:"", s:"" };
-    const p = String(str).split(":");
-    if (p.length === 3) return { h:p[0], m:String(parseInt(p[1])||0), s:String(parseInt(p[2])||0) };
-    if (p.length === 2) return { h:"", m:p[0], s:String(parseInt(p[1])||0) };
-    return { h:"", m:"", s:p[0]||"" };
+  // Each checkpoint is stored internally as a raw digit string (e.g. "14530").
+  // We display it formatted live ("1:45:30") and only convert at save time.
+  // Storing raw digits avoids any mid-typing corruption.
+
+  // Turn a saved "h:mm:ss" / "mm:ss" string back into raw digits
+  function strToDigits(str) {
+    if (!str) return "";
+    const p = String(str).split(":").map(x => x.trim());
+    if (p.length === 3) return String(parseInt(p[0])||0) + String(p[1]).padStart(2,"0") + String(p[2]).padStart(2,"0");
+    if (p.length === 2) return String(parseInt(p[0])||0) + String(p[1]).padStart(2,"0");
+    return p[0] || "";
   }
-  function hmsToStr({ h, m, s }) {
-    const H = parseInt(h)||0, M = parseInt(m)||0, S = parseInt(s)||0;
-    if (!h && !m && !s) return ""; // empty checkpoint
-    if (H > 0) return `${H}:${String(M).padStart(2,"0")}:${String(S).padStart(2,"0")}`;
-    return `${M}:${String(S).padStart(2,"0")}`;
+  // Format raw digits for DISPLAY: last 2 = seconds, next 2 = minutes, rest = hours
+  function digitsToDisplay(d) {
+    if (!d) return "";
+    d = d.replace(/\D/g, "").slice(0, 6);
+    if (d.length <= 2) return d; // still typing seconds
+    const s = d.slice(-2);
+    const m = d.slice(-4, -2);
+    const h = d.slice(0, -4);
+    return h ? `${h}:${m}:${s}` : `${m}:${s}`;
+  }
+  // Convert raw digits to total seconds
+  function digitsToSeconds(d) {
+    if (!d) return null;
+    d = d.replace(/\D/g, "").slice(0, 6);
+    if (d.length < 3) return null; // need at least m:ss worth
+    const s = parseInt(d.slice(-2)) || 0;
+    const m = parseInt(d.slice(-4, -2)) || 0;
+    const h = parseInt(d.slice(0, -4)) || 0;
+    return h * 3600 + m * 60 + s;
   }
 
   const [form, setForm] = useState(() => {
     const cpsStr = race ? (race.checkpointsRaw || Array(10).fill("")) : Array(10).fill("");
     return {
       name: race?.name||"", country: race?.country||"", date: race?.date||"", major: race?.major||"",
-      cps: cpsStr.map(parseToHMS), // store as {h,m,s} objects
+      cps: cpsStr.map(strToDigits), // store as raw digit strings
     };
   });
   const [err, setErr] = useState("");
 
   function handleSave() {
     if (!form.name.trim()) { setErr("Angiv løbsnavn"); return; }
-    const cpsStr = form.cps.map(hmsToStr);
-    const total = t2s(cpsStr[9]);
+    const cpsStr = form.cps.map(d => { const sec = digitsToSeconds(d); return sec != null ? s2t(sec) : ""; });
+    const total = digitsToSeconds(form.cps[9]);
     onSave({
       id: race ? race.id : uid(),
       name: form.name.trim(), country: form.country, date: form.date, major: form.major,
       checkpointsRaw: cpsStr,
-      totalTime: total ? s2t(total) : null,
+      totalTime: total != null ? s2t(total) : null,
     });
   }
 
@@ -425,30 +443,24 @@ function RaceModal({ race, onSave, onClose }) {
         </div>
 
         <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.1rem",letterSpacing:1.5,color:"#1a6fc4",margin:"18px 0 4px"}}>Tider undervejs</div>
-        <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",color:"#6a87a8",marginBottom:14,lineHeight:1.5}}>Indtast den tid uret viste ved hvert punkt (kumulativ tid) i felterne for timer, minutter og sekunder. Splits beregnes automatisk.</div>
+        <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",color:"#6a87a8",marginBottom:14,lineHeight:1.5}}>Indtast den tid uret viste ved hvert punkt (kumulativ tid). Bare tast tallene — kolon sættes automatisk. Fx <b>14530</b> → <b>1:45:30</b>, eller <b>2952</b> → <b>29:52</b>.</div>
 
-        <div style={{display:"flex",flexDirection:"column",gap:12}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
           {CHECKPOINTS.map((cp,i)=>{
-            const hms = form.cps[i];
             const accent = i===4?"#1a6fc4":i===9?"#c08820":null;
-            const boxStyle = {...inp, textAlign:"center", padding:"11px 4px", ...(accent?{borderColor:accent}:{})};
-            const setPart = (part,val)=>{
-              const v = val.replace(/\D/g,"").slice(0,2);
-              setForm(f=>{
-                const cps = f.cps.map((x,idx)=> idx===i ? {...x, [part]:v} : x);
-                return {...f, cps};
-              });
-            };
             return (
-              <div key={i} style={{display:"flex",alignItems:"center",gap:10,...(accent?{background:i===4?"rgba(26,111,196,0.05)":"rgba(192,136,32,0.06)",margin:"0 -8px",padding:"8px",borderRadius:8}:{})}}>
-                <label style={{...lbl, marginBottom:0, flex:"0 0 96px", color:accent||"#6a87a8"}}>{cp.label}{i===4?" ⭐":i===9?" 🏁":""}</label>
-                <div style={{display:"flex",alignItems:"center",gap:5,flex:1}}>
-                  <input style={{...boxStyle,flex:"0 0 46px"}} placeholder="t" value={hms.h} type="text" inputMode="numeric" pattern="[0-9]*" onChange={e=>setPart("h",e.target.value)}/>
-                  <span style={{color:"#9bb0c8",fontFamily:"'DM Mono',monospace",fontWeight:600}}>:</span>
-                  <input style={{...boxStyle,flex:1}} placeholder="mm" value={hms.m} type="text" inputMode="numeric" pattern="[0-9]*" onChange={e=>setPart("m",e.target.value)}/>
-                  <span style={{color:"#9bb0c8",fontFamily:"'DM Mono',monospace",fontWeight:600}}>:</span>
-                  <input style={{...boxStyle,flex:1}} placeholder="ss" value={hms.s} type="text" inputMode="numeric" pattern="[0-9]*" onChange={e=>setPart("s",e.target.value)}/>
-                </div>
+              <div key={i} style={i===9?{gridColumn:"1 / -1"}:{}}>
+                <label style={{...lbl, color:accent||"#6a87a8"}}>{cp.label}{i===4?" ⭐":i===9?" 🏁":""}</label>
+                <input
+                  style={{...inp, ...(accent?{borderColor:accent}:{})}}
+                  placeholder="t:mm:ss"
+                  value={digitsToDisplay(form.cps[i])}
+                  type="text" inputMode="numeric" pattern="[0-9]*"
+                  onChange={e=>{
+                    const digits = e.target.value.replace(/\D/g,"").slice(0,6);
+                    setForm(f=>{ const cps=[...f.cps]; cps[i]=digits; return {...f,cps}; });
+                  }}
+                />
               </div>
             );
           })}
@@ -837,7 +849,30 @@ setTimeout(()=>{ const s=document.getElementById("splash"); if(s){ s.style.opaci
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js").catch(err => console.log("SW fejl:", err));
+    navigator.serviceWorker.register("./sw.js").then(reg => {
+      // Check for updates whenever the page loads / regains focus
+      reg.update();
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") reg.update();
+      });
+      // When a new SW takes control, reload once to show the new version
+      reg.addEventListener("updatefound", () => {
+        const nw = reg.installing;
+        if (!nw) return;
+        nw.addEventListener("statechange", () => {
+          if (nw.state === "installed" && navigator.serviceWorker.controller) {
+            nw.postMessage("skipWaiting");
+          }
+        });
+      });
+    }).catch(err => console.log("SW fejl:", err));
+
+    let reloaded = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (reloaded) return;
+      reloaded = true;
+      window.location.reload();
+    });
   });
 }
 </script>
