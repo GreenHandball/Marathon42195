@@ -477,25 +477,11 @@ function SeriesGrid({ races, series, accent }) {
 }
 
 function MajorsView({ races }) {
-  const [series, setSeries] = useState("majors"); // "majors" | "emc"
-  const completed = (list) => list.filter(m => races.some(r=>r.major===m.name)).length;
+  return <SeriesGrid races={races} series={MAJORS} accent="#1a6fc4"/>;
+}
 
-  return (
-    <div>
-      <div style={{display:"flex",gap:8,marginBottom:18}}>
-        <button onClick={()=>setSeries("majors")} style={{flex:1,fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",letterSpacing:0.5,padding:"11px 8px",borderRadius:10,background:series==="majors"?"#1a6fc4":"#fff",border:`1px solid ${series==="majors"?"#1a6fc4":"#ccddf0"}`,color:series==="majors"?"#fff":"#6a87a8",cursor:"pointer"}}>
-          ⭐ World Majors ({completed(MAJORS)}/{MAJORS.length})
-        </button>
-        <button onClick={()=>setSeries("emc")} style={{flex:1,fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",letterSpacing:0.5,padding:"11px 8px",borderRadius:10,background:series==="emc"?"#1a8c50":"#fff",border:`1px solid ${series==="emc"?"#1a8c50":"#ccddf0"}`,color:series==="emc"?"#fff":"#6a87a8",cursor:"pointer"}}>
-          🇪🇺 EMC ({completed(EMC)}/{EMC.length})
-        </button>
-      </div>
-      {series==="emc" && (
-        <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",color:"#6a87a8",marginBottom:14,lineHeight:1.5}}>European Marathon Classics — gennemfør mindst 5 forskellige byer for at blive EMC Finisher. London tæller i begge serier.</div>
-      )}
-      <SeriesGrid races={races} series={series==="majors"?MAJORS:EMC} accent={series==="majors"?"#1a6fc4":"#1a8c50"}/>
-    </div>
-  );
+function EmcView({ races }) {
+  return <SeriesGrid races={races} series={EMC} accent="#1a8c50"/>;
 }
 
 // ─── RACE FORM MODAL ─────────────────────────────────────────
@@ -1121,12 +1107,14 @@ function App() {
   const TABS = [
     {id:"map",label:"Kort",icon:"🌍"},
     {id:"majors",label:"Majors",icon:"⭐"},
+    {id:"emc",label:"EMC",icon:"🇪🇺"},
     {id:"races",label:"Løb",icon:"📋"},
     {id:"splits",label:"Statistik",icon:"📊"},
   ];
 
   const titles = {
     map:["Mine ","løbelande"], majors:["World Marathon ","Majors"],
+    emc:["European Marathon ","Classics"],
     races:["",""], splits:["Tider & ","statistik"],
   };
 
@@ -1146,6 +1134,7 @@ function App() {
         )}
         {tab==="map" && <WorldMap races={races}/>}
         {tab==="majors" && <MajorsView races={races}/>}
+        {tab==="emc" && <EmcView races={races}/>}
         {tab==="races" && <RacesView races={races} onAdd={()=>setRaceModal("add")} onEdit={r=>setRaceModal(r)} onDelete={r=>setDeleteModal(r)} onExport={handleExport} onImport={()=>fileInputRef.current && fileInputRef.current.click()}/>}
         {tab==="splits" && <StatsView races={races}/>}
       </main>
@@ -1158,7 +1147,7 @@ function App() {
         {TABS.map(t=>(
           <button key={t.id} onClick={()=>setTab(t.id)} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3,padding:"10px 4px 12px",background:"transparent",border:"none",cursor:"pointer"}}>
             <span style={{fontSize:"1.3rem",filter:tab===t.id?"none":"grayscale(0.6) opacity(0.5)"}}>{t.icon}</span>
-            <span style={{fontFamily:"'DM Mono',monospace",fontSize:"0.58rem",letterSpacing:0.5,color:tab===t.id?"#1a6fc4":"#9bb0c8",fontWeight:tab===t.id?600:400}}>{t.label}</span>
+            <span style={{fontFamily:"'DM Mono',monospace",fontSize:"0.56rem",letterSpacing:0.2,color:tab===t.id?"#1a6fc4":"#9bb0c8",fontWeight:tab===t.id?600:400,whiteSpace:"nowrap"}}>{t.label}</span>
           </button>
         ))}
       </nav>
