@@ -71,6 +71,18 @@ const MAJORS = [
   { name: "Shanghai Marathon",       flag: "🇨🇳", city: "Shanghai, Kina" },
 ];
 
+// European Marathon Classics (EMC) — 8 races. London overlaps with World Majors.
+const EMC = [
+  { name: "Rome Marathon",           flag: "🇮🇹", city: "Rom, Italien" },
+  { name: "Vienna City Marathon",    flag: "🇦🇹", city: "Wien, Østrig" },
+  { name: "London Marathon",         flag: "🇬🇧", city: "London, England" },
+  { name: "Madrid Marathon",         flag: "🇪🇸", city: "Madrid, Spanien" },
+  { name: "Copenhagen Marathon",     flag: "🇩🇰", city: "København, Danmark" },
+  { name: "Warsaw Marathon",         flag: "🇵🇱", city: "Warszawa, Polen" },
+  { name: "Lisbon Marathon",         flag: "🇵🇹", city: "Lissabon, Portugal" },
+  { name: "Frankfurt Marathon",      flag: "🇩🇪", city: "Frankfurt, Tyskland" },
+];
+
 // Checkpoints where the user enters CUMULATIVE time (what the watch shows)
 // label, distance(km)
 const CHECKPOINTS = [
@@ -170,7 +182,11 @@ function computeRace(checkpointsRaw) {
     if (start == null || end == null) return null;
     return end - start;
   });
-  return { cum, segs, total, half };
+  // Second half marathon: 21.095 km → 42.195 km (= total − half)
+  const secondHalf = (total != null && half != null) ? total - half : null;
+  // 20–25 km combined (cum[5]=25km, cum[3]=20km)
+  const seg2025 = (cum[5] != null && cum[3] != null) ? cum[5] - cum[3] : null;
+  return { cum, segs, total, half, secondHalf, seg2025 };
 }
 
 // Validate a race and return a list of human-readable problems.
@@ -425,28 +441,28 @@ function WorldMap({ races }) {
   );
 }
 
-// ─── MAJORS VIEW ─────────────────────────────────────────────
-function MajorsView({ races }) {
+// ─── MAJORS / EMC VIEW ───────────────────────────────────────
+function SeriesGrid({ races, series, accent }) {
   return (
     <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(270px,1fr))",gap:10}}>
-      {MAJORS.map((m,i)=>{
+      {series.map((m,i)=>{
         const runs = races.filter(r=>r.major===m.name).sort((a,b)=>new Date(a.date)-new Date(b.date));
         const times = runs.map(r=>t2s(r.totalTime)).filter(Boolean);
         const pb = times.length ? Math.min(...times) : null;
         return (
-          <div key={m.name} style={{background:runs.length?"#f5f9ff":"#fff",border:`1px solid ${runs.length?"#c0d8f5":"#e2ebf5"}`,borderRadius:12,padding:"20px 22px",position:"relative",overflow:"hidden",borderLeft:`4px solid ${runs.length?"#1a6fc4":"#e2ebf5"}`}}>
+          <div key={m.name} style={{background:runs.length?"#f5f9ff":"#fff",border:`1px solid ${runs.length?"#c0d8f5":"#e2ebf5"}`,borderRadius:12,padding:"20px 22px",position:"relative",overflow:"hidden",borderLeft:`4px solid ${runs.length?accent:"#e2ebf5"}`}}>
             <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"3.5rem",color:"rgba(26,111,196,0.07)",position:"absolute",right:12,top:4,lineHeight:1}}>{String(i+1).padStart(2,"0")}</div>
             <div style={{fontSize:"1.6rem",marginBottom:6}}>{m.flag}</div>
             <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.35rem",letterSpacing:1.5}}>{m.name}</div>
             <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.63rem",color:"#6a87a8",letterSpacing:0.5,textTransform:"uppercase",marginBottom:12}}>{m.city}</div>
-            <span style={{fontFamily:"'DM Mono',monospace",fontSize:"0.6rem",letterSpacing:"1px",padding:"4px 10px",borderRadius:20,background:runs.length?"#1a6fc4":"transparent",color:runs.length?"#fff":"#6a87a8",border:runs.length?"none":"1px solid #ccddf0"}}>
+            <span style={{fontFamily:"'DM Mono',monospace",fontSize:"0.6rem",letterSpacing:"1px",padding:"4px 10px",borderRadius:20,background:runs.length?accent:"transparent",color:runs.length?"#fff":"#6a87a8",border:runs.length?"none":"1px solid #ccddf0"}}>
               {runs.length?`✓ ${runs.length}× gennemført`:"Mangler"}
             </span>
             {runs.length>0 && (
               <div style={{display:"flex",flexDirection:"column",gap:4,marginTop:12}}>
                 {runs.map(r=>{
                   const s=t2s(r.totalTime); const isPB=s&&s===pb&&runs.length>1;
-                  return <div key={r.id} style={{display:"flex",justifyContent:"space-between",fontFamily:"'DM Mono',monospace",fontSize:"0.72rem",padding:"5px 9px",background:"rgba(26,111,196,0.06)",borderRadius:6,borderLeft:"2px solid #1a6fc4"}}>
+                  return <div key={r.id} style={{display:"flex",justifyContent:"space-between",fontFamily:"'DM Mono',monospace",fontSize:"0.72rem",padding:"5px 9px",background:"rgba(26,111,196,0.06)",borderRadius:6,borderLeft:`2px solid ${accent}`}}>
                     <span style={{color:"#6a87a8"}}>{r.date?new Date(r.date).toLocaleDateString("da-DK",{year:"numeric",month:"short"}):"–"}</span>
                     <span style={{color:"#1a6fc4",fontWeight:500}}>{r.totalTime||"–"}{isPB?" 🏆":""}</span>
                   </div>;
@@ -456,6 +472,28 @@ function MajorsView({ races }) {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function MajorsView({ races }) {
+  const [series, setSeries] = useState("majors"); // "majors" | "emc"
+  const completed = (list) => list.filter(m => races.some(r=>r.major===m.name)).length;
+
+  return (
+    <div>
+      <div style={{display:"flex",gap:8,marginBottom:18}}>
+        <button onClick={()=>setSeries("majors")} style={{flex:1,fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",letterSpacing:0.5,padding:"11px 8px",borderRadius:10,background:series==="majors"?"#1a6fc4":"#fff",border:`1px solid ${series==="majors"?"#1a6fc4":"#ccddf0"}`,color:series==="majors"?"#fff":"#6a87a8",cursor:"pointer"}}>
+          ⭐ World Majors ({completed(MAJORS)}/{MAJORS.length})
+        </button>
+        <button onClick={()=>setSeries("emc")} style={{flex:1,fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",letterSpacing:0.5,padding:"11px 8px",borderRadius:10,background:series==="emc"?"#1a8c50":"#fff",border:`1px solid ${series==="emc"?"#1a8c50":"#ccddf0"}`,color:series==="emc"?"#fff":"#6a87a8",cursor:"pointer"}}>
+          🇪🇺 EMC ({completed(EMC)}/{EMC.length})
+        </button>
+      </div>
+      {series==="emc" && (
+        <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",color:"#6a87a8",marginBottom:14,lineHeight:1.5}}>European Marathon Classics — gennemfør mindst 5 forskellige byer for at blive EMC Finisher. London tæller i begge serier.</div>
+      )}
+      <SeriesGrid races={races} series={series==="majors"?MAJORS:EMC} accent={series==="majors"?"#1a6fc4":"#1a8c50"}/>
     </div>
   );
 }
@@ -538,10 +576,15 @@ function RaceModal({ race, onSave, onClose }) {
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
           <div><label style={lbl}>Dato</label><input type="date" style={inp} value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))}/></div>
           <div>
-            <label style={lbl}>World Major?</label>
+            <label style={lbl}>Del af serie?</label>
             <select style={{...inp,appearance:"none",backgroundImage:"url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236a87a8' stroke-width='1.5' fill='none'/%3E%3C/svg%3E\")",backgroundRepeat:"no-repeat",backgroundPosition:"right 14px center"}} value={form.major} onChange={e=>setForm(f=>({...f,major:e.target.value}))}>
               <option value="">Nej</option>
-              {MAJORS.map(m=><option key={m.name}>{m.name}</option>)}
+              <optgroup label="World Marathon Majors">
+                {MAJORS.map(m=><option key={"maj-"+m.name} value={m.name}>{m.name}</option>)}
+              </optgroup>
+              <optgroup label="European Marathon Classics">
+                {EMC.filter(e=>!MAJORS.some(m=>m.name===e.name)).map(e=><option key={"emc-"+e.name} value={e.name}>{e.name}</option>)}
+              </optgroup>
             </select>
           </div>
         </div>
@@ -549,17 +592,29 @@ function RaceModal({ race, onSave, onClose }) {
         <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.1rem",letterSpacing:1.5,color:"#1a6fc4",margin:"18px 0 4px"}}>Tider undervejs</div>
         <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",color:"#6a87a8",marginBottom:14,lineHeight:1.5}}>Indtast den tid uret viste ved hvert punkt (kumulativ tid). Bare tast tallene — kolon sættes automatisk. Fx <b>14530</b> → <b>1:45:30</b>, eller <b>2952</b> → <b>29:52</b>.</div>
 
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+        <div className="race-form-fields" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
           {CHECKPOINTS.map((cp,i)=>{
             const accent = i===4?"#1a6fc4":i===9?"#c08820":null;
+            const isLast = i===9;
             return (
-              <div key={i} style={i===9?{gridColumn:"1 / -1"}:{}}>
+              <div key={i} style={isLast?{gridColumn:"1 / -1"}:{}}>
                 <label style={{...lbl, color:accent||"#6a87a8"}}>{cp.label}{i===4?" ⭐":i===9?" 🏁":""}</label>
                 <input
                   style={{...inp, ...(accent?{borderColor:accent}:{})}}
                   placeholder="t:mm:ss"
                   value={digitsToDisplay(form.cps[i])}
                   type="text" inputMode="numeric" pattern="[0-9]*"
+                  enterKeyHint={isLast?"done":"next"}
+                  onKeyDown={e=>{
+                    if(e.key==="Enter" && !isLast){
+                      e.preventDefault();
+                      const inputs = e.target.closest("form, .race-form-fields")
+                        ? Array.from(e.target.closest(".race-form-fields").querySelectorAll("input"))
+                        : Array.from(document.querySelectorAll(".race-form-fields input"));
+                      const idx = inputs.indexOf(e.target);
+                      if(idx>=0 && inputs[idx+1]) inputs[idx+1].focus();
+                    }
+                  }}
                   onChange={e=>{
                     const digits = e.target.value.replace(/\D/g,"").slice(0,6);
                     setForm(f=>{ const cps=[...f.cps]; cps[i]=digits; return {...f,cps}; });
@@ -660,11 +715,21 @@ function StatsView({ races }) {
   );
 
   // ── Ranking options ──
+  // Build the per-segment options, inserting "20–25 km" just before "25–30 km".
+  const segOptions = [];
+  SEGMENTS.slice(0,9).forEach((seg,i)=>{
+    if (seg.label === "25–30 km") {
+      segOptions.push({ key:"s2025", label:"20–25 km", getVal:r=>computeRace(r.checkpointsRaw).seg2025, dist:5 });
+    }
+    segOptions.push({ key:"seg"+i, label:seg.label, getVal:r=>computeRace(r.checkpointsRaw).segs[i], dist:seg.dist });
+  });
+
   const rankOptions = [
     { key:"total", label:"Sluttid", getVal:r=>computeRace(r.checkpointsRaw).total, dist:42.195 },
-    { key:"half", label:"Halvmaraton", getVal:r=>computeRace(r.checkpointsRaw).half, dist:21.0975 },
+    { key:"half", label:"1. halvmaraton", getVal:r=>computeRace(r.checkpointsRaw).half, dist:21.0975 },
+    { key:"half2", label:"2. halvmaraton", getVal:r=>computeRace(r.checkpointsRaw).secondHalf, dist:21.1 },
     { key:"sprint", label:"Spurt 40→mål", getVal:r=>computeRace(r.checkpointsRaw).segs[9], dist:2.195 },
-    ...SEGMENTS.slice(0,9).map((seg,i)=>({ key:"seg"+i, label:seg.label, getVal:r=>computeRace(r.checkpointsRaw).segs[i], dist:seg.dist })),
+    ...segOptions,
   ];
   const activeRank = rankOptions.find(o=>o.key===rankBy) || rankOptions[0];
 
