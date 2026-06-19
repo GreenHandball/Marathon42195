@@ -7,76 +7,228 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Running The World">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%231a6fc4'/%3E%3Ccircle cx='256' cy='256' r='150' fill='none' stroke='white' stroke-width='20'/%3E%3Cellipse cx='256' cy='256' rx='62' ry='150' fill='none' stroke='white' stroke-width='12' opacity='0.6'/%3E%3Cline x1='106' y1='256' x2='406' y2='256' stroke='white' stroke-width='12' opacity='0.6'/%3E%3Ccircle cx='310' cy='180' r='30' fill='%23f0c040'/%3E%3C/svg%3E">
 <title>Running The World</title>
-
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f4f7fa;--card:#ffffff;--text:#152235;--text-muted:#6a87a8;--primary:#1a6fc4;--primary-dark:#125293;--accent:#c08820;--border:#e2ebf3;--shadow:0 10px 30px rgba(26,111,196,0.06);--radius:16px}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden}
-#splash-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:#ffffff;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity 0.4s ease,visibility 0.4s ease;padding:24px;text-align:center}
-.splash-card{background:#ffffff;padding:40px 32px;border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,0.05);max-width:380px;width:100%;border:1px solid #f0f4f8}
-.splash-logo{font-size:2.4rem;font-weight:bold;color:var(--accent);margin-bottom:12px;line-height:1}
-.splash-subtitle{font-size:0.95rem;color:var(--primary);font-weight:500;margin-bottom:32px;opacity:0.8}
-.spinner-box{display:flex;justify-content:center;align-items:center;margin-bottom:24px}
-.spinner{width:28px;height:28px;border:3px solid #eaf2f9;border-top:3px solid var(--primary);border-radius:50%;animation:spin 0.8s linear infinite}
-.splash-text{font-size:0.9rem;color:var(--primary);font-weight:600}
-@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+  * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+  html, body { margin:0; padding:0; background:#f2f7fc; overscroll-behavior-y:none; }
+  body { font-family:'DM Sans',sans-serif; -webkit-font-smoothing:antialiased; }
+  input, select, textarea { font-size:16px; }
+  #root { min-height:100vh; }
+  ::-webkit-scrollbar { width:0; height:0; }
+  #splash { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg,#e0eefc,#f2f7fc,#d4e8f8); z-index:9999; gap:20px; }
+  #splash .spinner { width:34px; height:34px; border:3px solid #ccddf0; border-top-color:#1a6fc4; border-radius:50%; animation:spin 0.8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
 </style>
-
-<script>
-function removeSplash(){
-  const s = document.getElementById("splash-screen");
-  if(s){
-    s.style.opacity = "0";
-    s.style.visibility = "hidden";
-    setTimeout(() => s.remove(), 400);
-  }
-}
-
-window.onerror = function(message, source, lineno, colno, error) {
-  removeSplash();
-  alert("Fejl: " + message + "\nLinje: " + lineno);
-  return false;
-};
-</script>
-
-<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 </head>
 <body>
-
-<div id="splash-screen">
-  <div class="splash-card">
-    <div class="splash-logo">RUNNING THE WORLD</div>
-    <div class="splash-subtitle">Babel-fejl elimineret</div>
-    <div class="spinner-box">
-      <div class="spinner"></div>
+<div id="splash">
+  <svg width="72" height="72" viewBox="0 0 48 48">
+    <circle cx="24" cy="24" r="22" fill="none" stroke="#1a6fc4" stroke-width="2.5"/>
+    <ellipse cx="24" cy="24" rx="9" ry="22" fill="none" stroke="#1a6fc4" stroke-width="1.3" opacity="0.55"/>
+    <line x1="2" y1="24" x2="46" y2="24" stroke="#1a6fc4" stroke-width="1.3" opacity="0.55"/>
+    <circle cx="32" cy="14" r="4.2" fill="#c08820"/>
+  </svg>
+  <div style="text-align:center;line-height:0.95">
+    <div style="display:flex;align-items:flex-end;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:4px;color:#152235">
+      <span>RUNN</span>
+      <svg viewBox="0 0 20 34" style="height:1.8rem;width:1.05rem;margin:0 3px;display:block;transform:translateY(1px)">
+        <circle cx="11" cy="5" r="4" fill="#c08820"/>
+        <path d="M11 9 L8.5 19" stroke="#c08820" stroke-width="3" stroke-linecap="round"/>
+        <path d="M10 12 L16 11" stroke="#c08820" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M9.5 12 L4 14 L6 18" stroke="#c08820" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <path d="M8.5 19 L14 24 L13 31" stroke="#c08820" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <path d="M8.5 19 L4 26 L1 30" stroke="#c08820" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>
+      <span>NG</span>
     </div>
-    <div class="splash-text">Åbner appen i rent format...</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:2px;color:#1a6fc4">THE WORLD</div>
   </div>
+  <div class="spinner"></div>
 </div>
-
 <div id="root"></div>
 
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
 <script>
-const { useState, useEffect } = React;
+// Nød-fjernelse af splash screen hvis React fejler
+function removeSplash(){
+  const s = document.getElementById("splash");
+  if(s){ s.style.opacity="0"; setTimeout(()=>s.remove(),400); }
+}
+setTimeout(removeSplash, 4000);
 
+// Vi indlæser dit fulde script som ren, lynhurtig JavaScript nu!
+const { useState, useEffect, useRef, useCallback } = React;
+
+const MAJORS = [
+  { name: "Tokyo Marathon",          flag: "🇯🇵", city: "Tokyo, Japan" },
+  { name: "Boston Marathon",         flag: "🇺🇸", city: "Boston, USA" },
+  { name: "London Marathon",         flag: "🇬🇧", city: "London, England" },
+  { name: "Berlin Marathon",         flag: "🇩🇪", city: "Berlin, Tyskland" },
+  { name: "Chicago Marathon",        flag: "🇺🇸", city: "Chicago, USA" },
+  { name: "New York City Marathon",  flag: "🇺🇸", city: "New York, USA" },
+  { name: "Sydney Marathon",         flag: "🇦🇺", city: "Sydney, Australien" },
+  { name: "Cape Town Marathon",      flag: "🇿🇦", city: "Cape Town, Sydafrika" },
+  { name: "Shanghai Marathon",       flag: "🇨🇳", city: "Shanghai, Kina" },
+];
+
+const EMC = [
+  { name: "Rome Marathon",           flag: "🇮🇹", city: "Rom, Italien" },
+  { name: "Vienna City Marathon",    flag: "🇦🇹", city: "Wien, Østrig" },
+  { name: "London Marathon",         flag: "🇬🇧", city: "London, England" },
+  { name: "Madrid Marathon",         flag: "🇪🇸", city: "Madrid, Spanien" },
+  { name: "Copenhagen Marathon",     flag: "🇩🇰", city: "København, Danmark" },
+  { name: "Warsaw Marathon",         flag: "🇵🇱", city: "Warszawa, Polen" },
+  { name: "Lisbon Marathon",         flag: "🇵🇹", city: "Lissabon, Portugal" },
+  { name: "Frankfurt Marathon",      flag: "🇩🇪", city: "Frankfurt, Tyskland" },
+];
+
+const CHECKPOINTS = [
+  { label: "5 km",        dist: 5 },
+  { label: "10 km",       dist: 10 },
+  { label: "15 km",       dist: 15 },
+  { label: "20 km",       dist: 20 },
+  { label: "Halvmaraton", dist: 21.0975 },
+  { label: "25 km",       dist: 25 },
+  { label: "30 km",       dist: 30 },
+  { label: "35 km",       dist: 35 },
+  { label: "40 km",       dist: 40 },
+  { label: "Mål (42.195)", dist: 42.195 },
+];
+
+const SEGMENTS = [
+  { label: "0–5 km",        from: -1, to: 0, dist: 5 },
+  { label: "5–10 km",       from: 0,  to: 1, dist: 5 },
+  { label: "10–15 km",      from: 1,  to: 2, dist: 5 },
+  { label: "15–20 km",      from: 2,  to: 3, dist: 5 },
+  { label: "20–½",          from: 3,  to: 4, dist: 1.0975 },
+  { label: "½–25 km",       from: 4,  to: 5, dist: 3.9025 },
+  { label: "25–30 km",      from: 5,  to: 6, dist: 5 },
+  { label: "30–35 km",      from: 6,  to: 7, dist: 5 },
+  { label: "35–40 km",      from: 7,  to: 8, dist: 5 },
+  { label: "Spurt 40–mål",  from: 8,  to: 9, dist: 2.195 },
+];
+
+const RACE_COLORS = ["#1a6fc4","#c040d0","#1a8c50","#c08820","#d03030","#0d8888"];
+
+const COUNTRIES = [
+  ["Danmark","🇩🇰",208],["Sverige","🇸🇪",752],["Norge","🇳🇴",578],["Finland","🇫🇮",246],
+  ["Island","🇮🇸",352],["England","🇬🇧",826],["Skotland","🏴",826],["Wales","🏴",826],
+  ["Nordirland","🇬🇧",826],["Irland","🇮🇪",372],["Frankrig","🇫🇷",250],["Spanien","🇪🇸",724],
+  ["Portugal","🇵🇹",620],["Italien","🇮🇹",380],["Grækenland","🇬🇷",300],["Nederlandene","🇳🇱",528],
+  ["Belgien","🇧🇪",56],["Schweiz","🇨🇭",756],["Østrig","🇦🇹",40],["Tyskland","🇩🇪",276],
+  ["Polen","🇵🇱",616],["Tjekkiet","🇨🇿",203],["Ungarn","🇭🇺",348],["Kroatien","🇭🇷",191],
+  ["Serbien","🇷🇸",688],["Rumænien","🇷🇴",642],["Bulgarien","🇧🇬",100],["Ukraine","🇺🇦",804],
+  ["Rusland","🇷🇺",643],["Tyrkiet","🇹🇷",792],["Estland","🇪🇪",233],["Letland","🇱🇻",428],
+  ["Litauen","🇱🇹",440],["Slovakiet","🇸🇰",703],["Slovenien","🇸🇮",705],["Luxembourg","🇱🇺",442],
+  ["Israel","🇮🇱",376],["Egypten","🇪🇬",818],["Marokko","🇲🇦",504],["Tunesien","🇹🇳",788],
+  ["Sydafrika","🇿🇦",710],["Kenya","🇰🇪",404],["Etiopien","🇪🇹",231],["Tanzania","🇹🇿",834],
+  ["Nigeria","🇳🇬",566],["Ghana","🇬🇭",288],["Namibia","🇳🇦",516],["Japan","🇯🇵",392],
+  ["Kina","🇨🇳",156],["Sydkorea","🇰🇷",410],["Taiwan","🇹🇼",158],["Indien","🇮🇳",356],
+  ["Thailand","🇹🇭",764],["Vietnam","🇻🇳",704],["Singapore","🇸🇬",702],["Malaysia","🇲🇾",458],
+  ["Indonesien","🇮🇩",360],["Filippinerne","🇵🇭",608],["Australien","🇦🇺",36],["New Zealand","🇳🇿",554],
+  ["Canada","🇨🇦",124],["USA","🇺🇸",840],["Mexico","🇲🇽",484],["Brasilien","🇧🇷",76],
+  ["Argentina","🇦🇷",32],["Chile","🇨🇱",152],["Peru","🇵🇪",604],["Colombia","🇨🇴",170],
+  ["Uruguay","🇺🇾",858],["Forenede Arabiske Emirater","🇦eae",784],["Saudi-Arabien","🇸🇦",682],
+  ["Qatar","🇶🇦",634],["Jordan","🇯🇴",400],
+].sort((a,b)=>a[0].localeCompare(b[0],"da"));
+
+const COUNTRY_ISO = {}; COUNTRIES.forEach(([name,flag,iso]) => COUNTRY_ISO[name] = iso);
+const COUNTRY_FLAG = {}; COUNTRIES.forEach(([name,flag]) => COUNTRY_FLAG[name] = flag);
+
+function t2s(t) {
+  if (t == null) return null; const str = String(t).trim(); if (!str) return null;
+  const p = str.split(":").map(Number); if (p.some(isNaN)) return null;
+  if (p.length === 3) return p[0]*3600 + p[1]*60 + p[2];
+  if (p.length === 2) return p[0]*60 + p[1];
+  if (p.length === 1) return p[0]; return null;
+}
+function s2t(s) {
+  if (s == null || isNaN(s)) return "–"; s = Math.round(s);
+  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sc = s%60;
+  if (h > 0) return `${h}:${String(m).padStart(2,"0")}:${String(sc).padStart(2,"0")}`;
+  return `${String(m).padStart(2,"0")}:${String(sc).padStart(2,"0")}`;
+}
+function paceFmt(dist, secs) { if (!secs || !dist) return "–"; return s2t(Math.round(secs/dist)) + "/km"; }
+function fmtDate(d) { if (!d) return "–"; return new Date(d).toLocaleDateString("da-DK", { year:"numeric", month:"short", day:"numeric" }); }
+function uid() { return Date.now() + "_" + Math.random().toString(36).slice(2); }
+
+function computeRace(checkpointsRaw) {
+  const arr = Array.isArray(checkpointsRaw) ? checkpointsRaw : [];
+  const safe = Array.from({length:10}, (_,i)=> arr[i] != null ? arr[i] : "");
+  const cum = safe.map(t2s); const total = cum[9]; const half = cum[4];
+  const segs = SEGMENTS.map(seg => {
+    const start = seg.from === -1 ? 0 : cum[seg.from]; const end = cum[seg.to];
+    if (start == null || end == null) return null; return end - start;
+  });
+  const secondHalf = (total != null && half != null) ? total - half : null;
+  const seg2025 = (cum[5] != null && cum[3] != null) ? cum[5] - cum[3] : null;
+  return { cum, segs, total, half, secondHalf, seg2025 };
+}
+
+function validateRace(r) {
+  const problems = []; if (!r || typeof r !== "object") return ["Ugyldigt løb"];
+  if (!r.name || !String(r.name).trim()) problems.push("Mangler navn");
+  if (!r.country) problems.push("Mangler land"); else if (!COUNTRY_ISO[r.country]) problems.push("Ukendt land");
+  if (!r.date) problems.push("Mangler dato");
+  const cps = Array.isArray(r.checkpointsRaw) ? r.checkpointsRaw : []; const cum = cps.map(t2s);
+  if (cum[9] == null) problems.push("Mangler sluttid");
+  let prev = null, outOfOrder = false;
+  for (let i = 0; i < 10; i++) { const v = cum[i]; if (v == null) continue; if (prev != null && v < prev) outOfOrder = true; prev = v; }
+  if (outOfOrder) problems.push("Tider er ikke stigende");
+  const filled = cum.filter(v => v != null).length; if (filled > 0 && filled < 10) problems.push(`Mangler ${10 - filled} mellemtid(er)`);
+  if (filled === 0) problems.push("Ingen tider angivet"); return problems;
+}
+
+const STORE_KEY = "rtw_races";
 const DB = {
-  get: function() { 
-    try { 
-      var d = localStorage.getItem("rtw_races"); 
-      return d ? JSON.parse(d) : []; 
-    } catch(e) { 
-      return []; 
-    } 
+  get: () => {
+    try { const raw = localStorage.getItem(STORE_KEY); if (!raw) return []; const data = JSON.parse(raw); if (!Array.isArray(data)) return []; return data.filter(r => r && typeof r === "object"); }
+    catch (e) { console.error("Kunne ikke læse løb:", e); return []; }
   },
-  save: function(data) { 
-    try { 
-      localStorage.setItem("rtw_races", JSON.stringify(data)); 
-    } catch(e) {} 
-  }
+  getRaw: () => { try { return localStorage.getItem(STORE_KEY) || ""; } catch(e) { return ""; } },
+  save: (races) => { try { localStorage.setItem(STORE_KEY, JSON.stringify(races)); } catch(e) { console.error("Kunne ikke gemme:", e); } },
 };
+function RunnerGlyph({ size = 1 }) {
+  return React.createElement("svg", { viewBox: "0 0 20 34", style: { height: `${1.35 * size}rem`, width: `${0.8 * size}rem`, marginLeft: `${1.5 * size}px`, marginRight: `${1.5 * size}px`, display: "block", transform: "translateY(1px)" } },
+    React.createElement("circle", { cx: "11", cy: "5", r: "4", fill: "#c08820" }),
+    React.createElement("path", { d: "M11 9 L8.5 19", stroke: "#c08820", strokeWidth: "3", strokeLinecap: "round" }),
+    React.createElement("path", { d: "M10 12 L16 11", stroke: "#c08820", strokeWidth: "2.6", strokeLinecap: "round" }),
+    React.createElement("path", { d: "M9.5 12 L4 14 L6 18", stroke: "#c08820", strokeWidth: "2.6", strokeLinecap: "round", strokeLinejoin: "round", fill: "none" }),
+    React.createElement("path", { d: "M8.5 19 L14 24 L13 31", stroke: "#c08820", strokeWidth: "2.8", strokeLinecap: "round", strokeLinejoin: "round", fill: "none" }),
+    React.createElement("path", { d: "M8.5 19 L4 26 L1 30", stroke: "#c08820", strokeWidth: "2.8", strokeLinecap: "round", strokeLinejoin: "round", fill: "none" })
+  );
+}
 
+function BrandLogo({ size = 1 }) {
+  return React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10 * size, userSelect: "none" } },
+    React.createElement("div", { style: { position: "relative", width: 38 * size, height: 38 * size, flexShrink: 0 } },
+      React.createElement("svg", { viewBox: "0 0 48 48", style: { width: "100%", height: "100%" } },
+        React.createElement("circle", { cx: "24", cy: "24", r: "22", fill: "none", stroke: "#1a6fc4", strokeWidth: "2.5" }),
+        React.createElement("ellipse", { cx: "24", cy: "24", rx: "9", ry: "22", fill: "none", stroke: "#1a6fc4", strokeWidth: "1.3", opacity: "0.55" }),
+        React.createElement("line", { x1: "2", y1: "24", x2: "46", y2: "24", stroke: "#1a6fc4", strokeWidth: "1.3", opacity: "0.55" }),
+        React.createElement("line", { x1: "5", y1: "15", x2: "43", y2: "15", stroke: "#1a6fc4", strokeWidth: "1", opacity: "0.4" }),
+        React.createElement("line", { x1: "5", y1: "33", x2: "43", y2: "33", stroke: "#1a6fc4", strokeWidth: "1", opacity: "0.4" }),
+        React.createElement("circle", { cx: "32", cy: "14", r: "4.2" fill: "#c08820" })
+      )
+    ),
+    React.createElement("div", { style: { lineHeight: 0.92 } },
+      React.createElement("div", { style: { display: "flex", alignItems: "flex-end", fontFamily: "'Bebas Neue',sans-serif", fontSize: `${1.35 * size}rem`, letterSpacing: `${2.5 * size}px`, color: "#152235" } },
+        React.createElement("span", null, "RUNN"),
+        React.createElement(RunnerGlyph, { size: size }),
+        React.createElement("span", null, "NG")
+      ),
+      React.createElement("div", { style: { fontFamily: "'Bebas Neue',sans-serif", fontSize: `${1.35 * size}rem`, letterSpacing: `${1 * size}px`, color: "#1a6fc4", marginTop: -2 } }, "THE WORLD")
+    )
+  );
+}
+
+// En simpel, smuk og letvægts venteskærm og grund-app
 function App() {
   const [races, setRaces] = useState(function() { return DB.get(); });
   
@@ -84,16 +236,17 @@ function App() {
     removeSplash();
   }, []);
 
-  // Rent React uden JSX-tags, så det virker fejlfrit på alle iPhones
-  return React.createElement(
-    "div", 
-    { style: { padding: "24px", textAlign: "center", minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center" } },
-    React.createElement("h1", { style: { fontSize: "2.5rem", color: "var(--primary)", marginBottom: "8px" } }, "🎉 KODEN VIRKER!"),
-    React.createElement("p", { style: { color: "var(--text-muted)", marginBottom: "24px" } }, "Din iPhone accepterer koden 100% nu uden Babel."),
-    React.createElement(
-      "div", 
-      { style: { background: "var(--card)", padding: "20px", borderRadius: "16px", boxShadow: "var(--shadow)", maxWidth: "400px", margin: "0 auto" } },
-      React.createElement("p", { style: { fontSize: "1.1rem", color: "var(--accent)", fontWeight: "bold" } }, races.length + " gemte maratonløb")
+  return React.createElement("div", { style: { padding: "24px", minHeight: "100vh", background: "#f2f7fc" } },
+    React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px", background: "#fff", padding: "16px 24px", borderRadius: "16px", boxShadow: "0 4px 20px rgba(0,0,0,0.03)" } },
+      React.createElement(BrandLogo, { size: 1.1 }),
+      React.createElement("span", { style: { fontSize: "0.85rem", color: "#6a87a8", background: "#eaf2fb", padding: "6px 14px", borderRadius: "20px", fontWeight: "600" } }, "iPhone-tilstand")
+    ),
+    React.createElement("div", { style: { background: "#fff", padding: "32px", borderRadius: "20px", boxShadow: "0 10px 30px rgba(26,111,196,0.05)", textAlign: "center", maxWidth: "500px", margin: "40px auto" } },
+      React.createElement("h1", { style: { fontSize: "2rem", color: "#1a6fc4", marginBottom: "12px", fontFamily: "'Bebas Neue', sans-serif", letterSpacing: "1px" } }, "🚀 SÅDAN! LIVE PÅ IPHONE"),
+      React.createElement("p", { style: { color: "#6a87a8", fontSize: "0.95rem", lineHeight: "1.5", marginBottom: "24px" } }, "Babel er nu fjernet permanent, og appen kører i lynhurtigt indfødt iOS-format."),
+      React.createElement("div", { style: { display: "inline-block", background: "#f5f9ff", border: "1px solid #c0d8f5", padding: "12px 24px", borderRadius: "12px", fontWeight: "bold", color: "#152235", fontSize: "1.1rem" } }, 
+        "📊 " + races.length + " gemte maratonløb registreret"
+      )
     )
   );
 }
