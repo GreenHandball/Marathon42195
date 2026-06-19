@@ -71,6 +71,18 @@ const MAJORS = [
   { name: "Shanghai Marathon",       flag: "🇨🇳", city: "Shanghai, Kina" },
 ];
 
+// European Marathon Classics (EMC) — 8 races. London overlaps with World Majors.
+const EMC = [
+  { name: "Rome Marathon",           flag: "🇮🇹", city: "Rom, Italien" },
+  { name: "Vienna City Marathon",    flag: "🇦🇹", city: "Wien, Østrig" },
+  { name: "London Marathon",         flag: "🇬🇧", city: "London, England" },
+  { name: "Madrid Marathon",         flag: "🇪🇸", city: "Madrid, Spanien" },
+  { name: "Copenhagen Marathon",     flag: "🇩🇰", city: "København, Danmark" },
+  { name: "Warsaw Marathon",         flag: "🇵🇱", city: "Warszawa, Polen" },
+  { name: "Lisbon Marathon",         flag: "🇵🇹", city: "Lissabon, Portugal" },
+  { name: "Frankfurt Marathon",      flag: "🇩🇪", city: "Frankfurt, Tyskland" },
+];
+
 // Checkpoints where the user enters CUMULATIVE time (what the watch shows)
 // label, distance(km)
 const CHECKPOINTS = [
@@ -133,11 +145,14 @@ COUNTRIES.forEach(([name,flag]) => COUNTRY_FLAG[name] = flag);
 
 // ─── UTILS ───────────────────────────────────────────────────
 function t2s(t) {
-  if (!t || !t.trim()) return null;
-  const p = t.trim().split(":").map(Number);
+  if (t == null) return null;
+  const str = String(t).trim();
+  if (!str) return null;
+  const p = str.split(":").map(Number);
   if (p.some(isNaN)) return null;
   if (p.length === 3) return p[0]*3600 + p[1]*60 + p[2];
   if (p.length === 2) return p[0]*60 + p[1];
+  if (p.length === 1) return p[0]; // bare seconds
   return null;
 }
 function s2t(s) {
@@ -160,7 +175,10 @@ function uid() { return Date.now() + "_" + Math.random().toString(36).slice(2); 
 // Given cumulative checkpoint times (array of 10 raw strings),
 // compute: cumulative seconds array, segment seconds array, total, half
 function computeRace(checkpointsRaw) {
-  const cum = (checkpointsRaw || Array(10).fill("")).map(t2s); // cumulative secs at each checkpoint
+  // Always work with a clean 10-length array, even if data is missing/malformed
+  const arr = Array.isArray(checkpointsRaw) ? checkpointsRaw : [];
+  const safe = Array.from({length:10}, (_,i)=> arr[i] != null ? arr[i] : "");
+  const cum = safe.map(t2s); // cumulative secs at each checkpoint
   const total = cum[9];
   const half = cum[4];
   // segment seconds
@@ -170,7 +188,11 @@ function computeRace(checkpointsRaw) {
     if (start == null || end == null) return null;
     return end - start;
   });
-  return { cum, segs, total, half };
+  // Second half marathon: 21.095 km → 42.195 km (= total − half)
+  const secondHalf = (total != null && half != null) ? total - half : null;
+  // 20–25 km combined (cum[5]=25km, cum[3]=20km)
+  const seg2025 = (cum[5] != null && cum[3] != null) ? cum[5] - cum[3] : null;
+  return { cum, segs, total, half, secondHalf, seg2025 };
 }
 
 // Validate a race and return a list of human-readable problems.
@@ -207,8 +229,22 @@ function validateRace(r) {
 // ─── STORAGE (single user, no login) ─────────────────────────
 const STORE_KEY = "rtw_races";
 const DB = {
-  get: () => JSON.parse(localStorage.getItem(STORE_KEY) || "[]"),
-  save: (races) => localStorage.setItem(STORE_KEY, JSON.stringify(races)),
+  get: () => {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (!raw) return [];
+      const data = JSON.parse(raw);
+      if (!Array.isArray(data)) return [];
+      // Keep only objects; drop anything malformed so one bad entry can't crash the app
+      return data.filter(r => r && typeof r === "object");
+    } catch (e) {
+      console.error("Kunne ikke læse gemte løb:", e);
+      return [];
+    }
+  },
+  // Raw backup of whatever is stored, for recovery
+  getRaw: () => { try { return localStorage.getItem(STORE_KEY) || ""; } catch(e) { return ""; } },
+  save: (races) => { try { localStorage.setItem(STORE_KEY, JSON.stringify(races)); } catch(e) { console.error("Kunne ikke gemme:", e); } },
 };
 
 // ─── RUNNER GLYPH (replaces the "I" in RUNNING) ──────────────
@@ -425,28 +461,28 @@ function WorldMap({ races }) {
   );
 }
 
-// ─── MAJORS VIEW ─────────────────────────────────────────────
-function MajorsView({ races }) {
+// ─── MAJORS / EMC VIEW ───────────────────────────────────────
+function SeriesGrid({ races, series, accent }) {
   return (
     <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(270px,1fr))",gap:10}}>
-      {MAJORS.map((m,i)=>{
+      {series.map((m,i)=>{
         const runs = races.filter(r=>r.major===m.name).sort((a,b)=>new Date(a.date)-new Date(b.date));
         const times = runs.map(r=>t2s(r.totalTime)).filter(Boolean);
         const pb = times.length ? Math.min(...times) : null;
         return (
-          <div key={m.name} style={{background:runs.length?"#f5f9ff":"#fff",border:`1px solid ${runs.length?"#c0d8f5":"#e2ebf5"}`,borderRadius:12,padding:"20px 22px",position:"relative",overflow:"hidden",borderLeft:`4px solid ${runs.length?"#1a6fc4":"#e2ebf5"}`}}>
+          <div key={m.name} style={{background:runs.length?"#f5f9ff":"#fff",border:`1px solid ${runs.length?"#c0d8f5":"#e2ebf5"}`,borderRadius:12,padding:"20px 22px",position:"relative",overflow:"hidden",borderLeft:`4px solid ${runs.length?accent:"#e2ebf5"}`}}>
             <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"3.5rem",color:"rgba(26,111,196,0.07)",position:"absolute",right:12,top:4,lineHeight:1}}>{String(i+1).padStart(2,"0")}</div>
             <div style={{fontSize:"1.6rem",marginBottom:6}}>{m.flag}</div>
             <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.35rem",letterSpacing:1.5}}>{m.name}</div>
             <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.63rem",color:"#6a87a8",letterSpacing:0.5,textTransform:"uppercase",marginBottom:12}}>{m.city}</div>
-            <span style={{fontFamily:"'DM Mono',monospace",fontSize:"0.6rem",letterSpacing:"1px",padding:"4px 10px",borderRadius:20,background:runs.length?"#1a6fc4":"transparent",color:runs.length?"#fff":"#6a87a8",border:runs.length?"none":"1px solid #ccddf0"}}>
+            <span style={{fontFamily:"'DM Mono',monospace",fontSize:"0.6rem",letterSpacing:"1px",padding:"4px 10px",borderRadius:20,background:runs.length?accent:"transparent",color:runs.length?"#fff":"#6a87a8",border:runs.length?"none":"1px solid #ccddf0"}}>
               {runs.length?`✓ ${runs.length}× gennemført`:"Mangler"}
             </span>
             {runs.length>0 && (
               <div style={{display:"flex",flexDirection:"column",gap:4,marginTop:12}}>
                 {runs.map(r=>{
                   const s=t2s(r.totalTime); const isPB=s&&s===pb&&runs.length>1;
-                  return <div key={r.id} style={{display:"flex",justifyContent:"space-between",fontFamily:"'DM Mono',monospace",fontSize:"0.72rem",padding:"5px 9px",background:"rgba(26,111,196,0.06)",borderRadius:6,borderLeft:"2px solid #1a6fc4"}}>
+                  return <div key={r.id} style={{display:"flex",justifyContent:"space-between",fontFamily:"'DM Mono',monospace",fontSize:"0.72rem",padding:"5px 9px",background:"rgba(26,111,196,0.06)",borderRadius:6,borderLeft:`2px solid ${accent}`}}>
                     <span style={{color:"#6a87a8"}}>{r.date?new Date(r.date).toLocaleDateString("da-DK",{year:"numeric",month:"short"}):"–"}</span>
                     <span style={{color:"#1a6fc4",fontWeight:500}}>{r.totalTime||"–"}{isPB?" 🏆":""}</span>
                   </div>;
@@ -458,6 +494,14 @@ function MajorsView({ races }) {
       })}
     </div>
   );
+}
+
+function MajorsView({ races }) {
+  return <SeriesGrid races={races} series={MAJORS} accent="#1a6fc4"/>;
+}
+
+function EmcView({ races }) {
+  return <SeriesGrid races={races} series={EMC} accent="#1a8c50"/>;
 }
 
 // ─── RACE FORM MODAL ─────────────────────────────────────────
@@ -538,10 +582,15 @@ function RaceModal({ race, onSave, onClose }) {
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
           <div><label style={lbl}>Dato</label><input type="date" style={inp} value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))}/></div>
           <div>
-            <label style={lbl}>World Major?</label>
+            <label style={lbl}>Del af serie?</label>
             <select style={{...inp,appearance:"none",backgroundImage:"url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236a87a8' stroke-width='1.5' fill='none'/%3E%3C/svg%3E\")",backgroundRepeat:"no-repeat",backgroundPosition:"right 14px center"}} value={form.major} onChange={e=>setForm(f=>({...f,major:e.target.value}))}>
               <option value="">Nej</option>
-              {MAJORS.map(m=><option key={m.name}>{m.name}</option>)}
+              <optgroup label="World Marathon Majors">
+                {MAJORS.map(m=><option key={"maj-"+m.name} value={m.name}>{m.name}</option>)}
+              </optgroup>
+              <optgroup label="European Marathon Classics">
+                {EMC.filter(e=>!MAJORS.some(m=>m.name===e.name)).map(e=><option key={"emc-"+e.name} value={e.name}>{e.name}</option>)}
+              </optgroup>
             </select>
           </div>
         </div>
@@ -549,17 +598,29 @@ function RaceModal({ race, onSave, onClose }) {
         <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.1rem",letterSpacing:1.5,color:"#1a6fc4",margin:"18px 0 4px"}}>Tider undervejs</div>
         <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",color:"#6a87a8",marginBottom:14,lineHeight:1.5}}>Indtast den tid uret viste ved hvert punkt (kumulativ tid). Bare tast tallene — kolon sættes automatisk. Fx <b>14530</b> → <b>1:45:30</b>, eller <b>2952</b> → <b>29:52</b>.</div>
 
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+        <div className="race-form-fields" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
           {CHECKPOINTS.map((cp,i)=>{
             const accent = i===4?"#1a6fc4":i===9?"#c08820":null;
+            const isLast = i===9;
             return (
-              <div key={i} style={i===9?{gridColumn:"1 / -1"}:{}}>
+              <div key={i} style={isLast?{gridColumn:"1 / -1"}:{}}>
                 <label style={{...lbl, color:accent||"#6a87a8"}}>{cp.label}{i===4?" ⭐":i===9?" 🏁":""}</label>
                 <input
                   style={{...inp, ...(accent?{borderColor:accent}:{})}}
                   placeholder="t:mm:ss"
                   value={digitsToDisplay(form.cps[i])}
                   type="text" inputMode="numeric" pattern="[0-9]*"
+                  enterKeyHint={isLast?"done":"next"}
+                  onKeyDown={e=>{
+                    if(e.key==="Enter" && !isLast){
+                      e.preventDefault();
+                      const inputs = e.target.closest("form, .race-form-fields")
+                        ? Array.from(e.target.closest(".race-form-fields").querySelectorAll("input"))
+                        : Array.from(document.querySelectorAll(".race-form-fields input"));
+                      const idx = inputs.indexOf(e.target);
+                      if(idx>=0 && inputs[idx+1]) inputs[idx+1].focus();
+                    }
+                  }}
                   onChange={e=>{
                     const digits = e.target.value.replace(/\D/g,"").slice(0,6);
                     setForm(f=>{ const cps=[...f.cps]; cps[i]=digits; return {...f,cps}; });
@@ -660,11 +721,21 @@ function StatsView({ races }) {
   );
 
   // ── Ranking options ──
+  // Build the per-segment options, inserting "20–25 km" just before "25–30 km".
+  const segOptions = [];
+  SEGMENTS.slice(0,9).forEach((seg,i)=>{
+    if (seg.label === "25–30 km") {
+      segOptions.push({ key:"s2025", label:"20–25 km", getVal:r=>computeRace(r.checkpointsRaw).seg2025, dist:5 });
+    }
+    segOptions.push({ key:"seg"+i, label:seg.label, getVal:r=>computeRace(r.checkpointsRaw).segs[i], dist:seg.dist });
+  });
+
   const rankOptions = [
     { key:"total", label:"Sluttid", getVal:r=>computeRace(r.checkpointsRaw).total, dist:42.195 },
-    { key:"half", label:"Halvmaraton", getVal:r=>computeRace(r.checkpointsRaw).half, dist:21.0975 },
+    { key:"half", label:"1. halvmaraton", getVal:r=>computeRace(r.checkpointsRaw).half, dist:21.0975 },
+    { key:"half2", label:"2. halvmaraton", getVal:r=>computeRace(r.checkpointsRaw).secondHalf, dist:21.1 },
     { key:"sprint", label:"Spurt 40→mål", getVal:r=>computeRace(r.checkpointsRaw).segs[9], dist:2.195 },
-    ...SEGMENTS.slice(0,9).map((seg,i)=>({ key:"seg"+i, label:seg.label, getVal:r=>computeRace(r.checkpointsRaw).segs[i], dist:seg.dist })),
+    ...segOptions,
   ];
   const activeRank = rankOptions.find(o=>o.key===rankBy) || rankOptions[0];
 
@@ -1056,12 +1127,14 @@ function App() {
   const TABS = [
     {id:"map",label:"Kort",icon:"🌍"},
     {id:"majors",label:"Majors",icon:"⭐"},
+    {id:"emc",label:"EMC",icon:"🇪🇺"},
     {id:"races",label:"Løb",icon:"📋"},
     {id:"splits",label:"Statistik",icon:"📊"},
   ];
 
   const titles = {
     map:["Mine ","løbelande"], majors:["World Marathon ","Majors"],
+    emc:["European Marathon ","Classics"],
     races:["",""], splits:["Tider & ","statistik"],
   };
 
@@ -1081,6 +1154,7 @@ function App() {
         )}
         {tab==="map" && <WorldMap races={races}/>}
         {tab==="majors" && <MajorsView races={races}/>}
+        {tab==="emc" && <EmcView races={races}/>}
         {tab==="races" && <RacesView races={races} onAdd={()=>setRaceModal("add")} onEdit={r=>setRaceModal(r)} onDelete={r=>setDeleteModal(r)} onExport={handleExport} onImport={()=>fileInputRef.current && fileInputRef.current.click()}/>}
         {tab==="splits" && <StatsView races={races}/>}
       </main>
@@ -1093,7 +1167,7 @@ function App() {
         {TABS.map(t=>(
           <button key={t.id} onClick={()=>setTab(t.id)} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3,padding:"10px 4px 12px",background:"transparent",border:"none",cursor:"pointer"}}>
             <span style={{fontSize:"1.3rem",filter:tab===t.id?"none":"grayscale(0.6) opacity(0.5)"}}>{t.icon}</span>
-            <span style={{fontFamily:"'DM Mono',monospace",fontSize:"0.58rem",letterSpacing:0.5,color:tab===t.id?"#1a6fc4":"#9bb0c8",fontWeight:tab===t.id?600:400}}>{t.label}</span>
+            <span style={{fontFamily:"'DM Mono',monospace",fontSize:"0.56rem",letterSpacing:0.2,color:tab===t.id?"#1a6fc4":"#9bb0c8",fontWeight:tab===t.id?600:400,whiteSpace:"nowrap"}}>{t.label}</span>
           </button>
         ))}
       </nav>
@@ -1105,10 +1179,55 @@ function App() {
   );
 }
 
+// ─── ERROR BOUNDARY ──────────────────────────────────────────
+class ErrorBoundary extends React.Component {
+  constructor(props){ super(props); this.state = { hasError:false, msg:"" }; }
+  static getDerivedStateFromError(error){ return { hasError:true, msg: error && error.message ? error.message : String(error) }; }
+  componentDidCatch(error, info){ console.error("App-fejl:", error, info); }
+  render(){
+    if (this.state.hasError) {
+      return (
+        <div style={{minHeight:"100vh",background:"#f2f7fc",fontFamily:"'DM Sans',sans-serif",color:"#152235",display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
+          <div style={{background:"#fff",border:"1px solid #f0d49a",borderRadius:16,padding:"28px 24px",maxWidth:420,boxShadow:"0 16px 48px rgba(26,111,196,.12)"}}>
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:2,color:"#c08820",marginBottom:10}}>⚠️ Noget gik galt</div>
+            <p style={{fontSize:"0.9rem",color:"#6a87a8",lineHeight:1.5,marginBottom:16}}>Appen kunne ikke starte korrekt, men dine gemte løb er der stadig. Prøv at indlæse din seneste backup-fil, eller tryk Genstart.</p>
+            <div style={{display:"flex",gap:8}}>
+              <button onClick={()=>window.location.reload()} style={{flex:1,fontFamily:"'Bebas Neue',sans-serif",fontSize:"1rem",letterSpacing:2,padding:"12px",background:"#1a6fc4",color:"#fff",border:"none",borderRadius:10,cursor:"pointer"}}>GENSTART</button>
+            </div>
+            <details style={{marginTop:16}}>
+              <summary style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",color:"#9bb0c8",cursor:"pointer"}}>Teknisk detalje</summary>
+              <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.6rem",color:"#9bb0c8",marginTop:6,wordBreak:"break-word"}}>{this.state.msg}</div>
+            </details>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 // ─── RENDER ──────────────────────────────────────────────────
-const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(<App />);
-setTimeout(()=>{ const s=document.getElementById("splash"); if(s){ s.style.opacity="0"; s.style.transition="opacity .3s"; setTimeout(()=>s.remove(),300); } }, 400);
+function removeSplash(){
+  const s = document.getElementById("splash");
+  if (s){ s.style.opacity="0"; s.style.transition="opacity .3s"; setTimeout(()=>{ if(s.parentNode) s.remove(); }, 300); }
+}
+// Safety net: always remove splash after 2.5s no matter what, so the user is never stuck.
+setTimeout(removeSplash, 2500);
+
+try {
+  const root = ReactDOM.createRoot(document.getElementById("root"));
+  root.render(<ErrorBoundary><App /></ErrorBoundary>);
+  // Remove splash shortly after first paint
+  setTimeout(removeSplash, 400);
+} catch (e) {
+  console.error("Kunne ikke starte app:", e);
+  removeSplash();
+  document.getElementById("root").innerHTML =
+    "<div style='min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;padding:24px;text-align:center;color:#152235'>"
+    + "<div><h2 style='color:#c08820'>⚠️ Appen kunne ikke starte</h2>"
+    + "<p style='color:#6a87a8'>Dine gemte løb er der stadig. Genindlæs siden, eller indlæs din backup-fil.</p>"
+    + "<button onclick='window.location.reload()' style='padding:12px 24px;background:#1a6fc4;color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:1rem'>Genstart</button></div></div>";
+}
 </script>
 
 <script>
