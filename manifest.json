@@ -1,0 +1,20 @@
+{
+  "name": "Running The World",
+  "short_name": "Running The World",
+  "description": "Track dine marathon løb, tider og statistik fra hele verden",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f2f7fc",
+  "theme_color": "#1a6fc4",
+  "lang": "da",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%231a6fc4'/%3E%3Ccircle cx='256' cy='256' r='150' fill='none' stroke='white' stroke-width='20'/%3E%3Cellipse cx='256' cy='256' rx='62' ry='150' fill='none' stroke='white' stroke-width='12' opacity='0.6'/%3E%3Cline x1='106' y1='256' x2='406' y2='256' stroke='white' stroke-width='12' opacity='0.6'/%3E%3Ccircle cx='310' cy='180' r='30' fill='%23f0c040'/%3E%3C/svg%3E",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["sports", "health", "fitness"]
+}
