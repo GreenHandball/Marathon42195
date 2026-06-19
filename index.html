@@ -9,1195 +9,129 @@
 <meta name="apple-mobile-web-app-title" content="Running The World">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="./manifest.json">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%231a6fc4'/%3E%3Ccircle cx='256' cy='256' r='150' fill='none' stroke='white' stroke-width='20'/%3E%3Cellipse cx='256' cy='256' rx='62' ry='150' fill='none' stroke='white' stroke-width='12' opacity='0.6'/%3E%3Cline x1='106' y1='256' x2='406' y2='256' stroke='white' stroke-width='12' opacity='0.6'/%3E%3Ccircle cx='310' cy='180' r='30' fill='%23f0c040'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%231a6fc4'/%3E%3Ccircle cx='256' cy='256' r='150' fill='none' stroke='white' stroke-width='20'/%3E%3Cellipse cx='256' cy='256' rx='62' ry='150' fill='none' stroke='white' stroke-width='12' opacity='0.6'/%3E%3Cline x1='106' y1='256' x2='406' y2='256' stroke='white' stroke-width='12' opacity='0.6'/%3E%3Cpath d='M160 150 A130 130 0 0 0 352 150' fill='none' stroke='white' stroke-width='8' opacity='0.4'/%3E%3Cpath d='M160 362 A130 130 0 0 1 352 362' fill='none' stroke='white' stroke-width='8' opacity='0.4'/%3E%3C/svg%3E">
 <title>Running The World</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js" defer></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
+
 <style>
-  * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-  html, body { margin:0; padding:0; background:#f2f7fc; overscroll-behavior-y:none; }
-  body { font-family:'DM Sans',sans-serif; -webkit-font-smoothing:antialiased; }
-  input, select, textarea { font-size:16px; }
-  #root { min-height:100vh; }
-  ::-webkit-scrollbar { width:0; height:0; }
-  #splash { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg,#e0eefc,#f2f7fc,#d4e8f8); z-index:9999; gap:20px; }
-  #splash .spinner { width:34px; height:34px; border:3px solid #ccddf0; border-top-color:#1a6fc4; border-radius:50%; animation:spin 0.8s linear infinite; }
-  @keyframes spin { to { transform:rotate(360deg); } }
+:root{--bg:#f4f7fa;--card:#ffffff;--text:#152235;--text-muted:#6a87a8;--primary:#1a6fc4;--primary-dark:#125293;--accent:#c08820;--border:#e2ebf3;--shadow:0 10px 30px rgba(26,111,196,0.06);--radius:16px;--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.4;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+#splash-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:#ffffff;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity 0.4s ease,visibility 0.4s ease;padding:24px;text-align:center}
+.splash-card{background:#ffffff;padding:40px 32px;border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,0.05);max-width:380px;width:100%;border:1px solid #f0f4f8}
+.splash-logo{font-family:'Bebas Neue',sans-serif;font-size:2.8rem;letter-spacing:1px;color:var(--accent);margin-bottom:12px;line-height:1}
+.splash-subtitle{font-size:0.95rem;color:var(--primary);font-weight:500;margin-bottom:32px;opacity:0.8;letter-spacing:0.5px}
+.spinner-box{display:flex;justify-content:center;align-items:center;margin-bottom:24px}
+.spinner{width:28px;height:28px;border:3px solid #eaf2f9;border-top:3px solid var(--primary);border-radius:50%;animation:spin 0.8s linear infinite}
+.splash-text{font-size:0.9rem;color:var(--primary);font-weight:600;letter-spacing:0.2px}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
-<div id="splash">
-  <svg width="72" height="72" viewBox="0 0 48 48">
-    <circle cx="24" cy="24" r="22" fill="none" stroke="#1a6fc4" stroke-width="2.5"/>
-    <ellipse cx="24" cy="24" rx="9" ry="22" fill="none" stroke="#1a6fc4" stroke-width="1.3" opacity="0.55"/>
-    <line x1="2" y1="24" x2="46" y2="24" stroke="#1a6fc4" stroke-width="1.3" opacity="0.55"/>
-    <circle cx="32" cy="14" r="4.2" fill="#c08820"/>
-  </svg>
-  <div style="text-align:center;line-height:0.95">
-    <div style="display:flex;align-items:flex-end;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:4px;color:#152235">
-      <span>RUNN</span>
-      <svg viewBox="0 0 20 34" style="height:1.8rem;width:1.05rem;margin:0 3px;display:block;transform:translateY(1px)">
-        <circle cx="11" cy="5" r="4" fill="#c08820"/>
-        <path d="M11 9 L8.5 19" stroke="#c08820" stroke-width="3" stroke-linecap="round"/>
-        <path d="M10 12 L16 11" stroke="#c08820" stroke-width="2.6" stroke-linecap="round"/>
-        <path d="M9.5 12 L4 14 L6 18" stroke="#c08820" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-        <path d="M8.5 19 L14 24 L13 31" stroke="#c08820" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-        <path d="M8.5 19 L4 26 L1 30" stroke="#c08820" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-      </svg>
-      <span>NG</span>
+
+<div id="splash-screen">
+  <div class="splash-card">
+    <div class="splash-logo">RUNNING THE WORLD</div>
+    <div class="splash-subtitle">Fejlsikret iPhone-test</div>
+    <div class="spinner-box">
+      <div class="spinner"></div>
     </div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:2px;color:#1a6fc4">THE WORLD</div>
+    <div class="splash-text">Indlæser appen uden om fejlen...</div>
   </div>
-  <div class="spinner"></div>
 </div>
+
 <div id="root"></div>
 
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-<script type="text/babel" data-presets="react">
-const { useState, useEffect, useRef, useCallback } = React;
-
-// ─── CONSTANTS ───────────────────────────────────────────────
-const MAJORS = [
-  { name: "Tokyo Marathon",          flag: "🇯🇵", city: "Tokyo, Japan" },
-  { name: "Boston Marathon",         flag: "🇺🇸", city: "Boston, USA" },
-  { name: "London Marathon",         flag: "🇬🇧", city: "London, England" },
-  { name: "Berlin Marathon",         flag: "🇩🇪", city: "Berlin, Tyskland" },
-  { name: "Chicago Marathon",        flag: "🇺🇸", city: "Chicago, USA" },
-  { name: "New York City Marathon",  flag: "🇺🇸", city: "New York, USA" },
-  { name: "Sydney Marathon",         flag: "🇦🇺", city: "Sydney, Australien" },
-  { name: "Cape Town Marathon",      flag: "🇿🇦", city: "Cape Town, Sydafrika" },
-  { name: "Shanghai Marathon",       flag: "🇨🇳", city: "Shanghai, Kina" },
-];
-
-// European Marathon Classics (EMC) — 8 races. London overlaps with World Majors.
-const EMC = [
-  { name: "Rome Marathon",           flag: "🇮🇹", city: "Rom, Italien" },
-  { name: "Vienna City Marathon",    flag: "🇦🇹", city: "Wien, Østrig" },
-  { name: "London Marathon",         flag: "🇬🇧", city: "London, England" },
-  { name: "Madrid Marathon",         flag: "🇪🇸", city: "Madrid, Spanien" },
-  { name: "Copenhagen Marathon",     flag: "🇩🇰", city: "København, Danmark" },
-  { name: "Warsaw Marathon",         flag: "🇵🇱", city: "Warszawa, Polen" },
-  { name: "Lisbon Marathon",         flag: "🇵🇹", city: "Lissabon, Portugal" },
-  { name: "Frankfurt Marathon",      flag: "🇩🇪", city: "Frankfurt, Tyskland" },
-];
-
-// Checkpoints where the user enters CUMULATIVE time (what the watch shows)
-// label, distance(km)
-const CHECKPOINTS = [
-  { label: "5 km",        dist: 5 },
-  { label: "10 km",       dist: 10 },
-  { label: "15 km",       dist: 15 },
-  { label: "20 km",       dist: 20 },
-  { label: "Halvmaraton", dist: 21.0975 },
-  { label: "25 km",       dist: 25 },
-  { label: "30 km",       dist: 30 },
-  { label: "35 km",       dist: 35 },
-  { label: "40 km",       dist: 40 },
-  { label: "Mål (42.195)", dist: 42.195 },
-];
-
-// Segments derived between checkpoints (for splits & ranking)
-// from-index in CHECKPOINTS (or -1 = start), to-index
-const SEGMENTS = [
-  { label: "0–5 km",        from: -1, to: 0, dist: 5 },
-  { label: "5–10 km",       from: 0,  to: 1, dist: 5 },
-  { label: "10–15 km",      from: 1,  to: 2, dist: 5 },
-  { label: "15–20 km",      from: 2,  to: 3, dist: 5 },
-  { label: "20–½",          from: 3,  to: 4, dist: 1.0975 },
-  { label: "½–25 km",       from: 4,  to: 5, dist: 3.9025 },
-  { label: "25–30 km",      from: 5,  to: 6, dist: 5 },
-  { label: "30–35 km",      from: 6,  to: 7, dist: 5 },
-  { label: "35–40 km",      from: 7,  to: 8, dist: 5 },
-  { label: "Spurt 40–mål",  from: 8,  to: 9, dist: 2.195 },
-];
-
-const RACE_COLORS = ["#1a6fc4","#c040d0","#1a8c50","#c08820","#d03030","#0d8888"];
-
-// Countries with flag + ISO numeric for the map
-const COUNTRIES = [
-  ["Danmark","🇩🇰",208],["Sverige","🇸🇪",752],["Norge","🇳🇴",578],["Finland","🇫🇮",246],
-  ["Island","🇮🇸",352],["England","🇬🇧",826],["Skotland","🏴",826],["Wales","🏴",826],
-  ["Nordirland","🇬🇧",826],["Irland","🇮🇪",372],["Frankrig","🇫🇷",250],["Spanien","🇪🇸",724],
-  ["Portugal","🇵🇹",620],["Italien","🇮🇹",380],["Grækenland","🇬🇷",300],["Nederlandene","🇳🇱",528],
-  ["Belgien","🇧🇪",56],["Schweiz","🇨🇭",756],["Østrig","🇦🇹",40],["Tyskland","🇩🇪",276],
-  ["Polen","🇵🇱",616],["Tjekkiet","🇨🇿",203],["Ungarn","🇭🇺",348],["Kroatien","🇭🇷",191],
-  ["Serbien","🇷🇸",688],["Rumænien","🇷🇴",642],["Bulgarien","🇧🇬",100],["Ukraine","🇺🇦",804],
-  ["Rusland","🇷🇺",643],["Tyrkiet","🇹🇷",792],["Estland","🇪🇪",233],["Letland","🇱🇻",428],
-  ["Litauen","🇱🇹",440],["Slovakiet","🇸🇰",703],["Slovenien","🇸🇮",705],["Luxembourg","🇱🇺",442],
-  ["Israel","🇮🇱",376],["Egypten","🇪🇬",818],["Marokko","🇲🇦",504],["Tunesien","🇹🇳",788],
-  ["Sydafrika","🇿🇦",710],["Kenya","🇰🇪",404],["Etiopien","🇪🇹",231],["Tanzania","🇹🇿",834],
-  ["Nigeria","🇳🇬",566],["Ghana","🇬🇭",288],["Namibia","🇳🇦",516],["Japan","🇯🇵",392],
-  ["Kina","🇨🇳",156],["Sydkorea","🇰🇷",410],["Taiwan","🇹🇼",158],["Indien","🇮🇳",356],
-  ["Thailand","🇹🇭",764],["Vietnam","🇻🇳",704],["Singapore","🇸🇬",702],["Malaysia","🇲🇾",458],
-  ["Indonesien","🇮🇩",360],["Filippinerne","🇵🇭",608],["Australien","🇦🇺",36],["New Zealand","🇳🇿",554],
-  ["Canada","🇨🇦",124],["USA","🇺🇸",840],["Mexico","🇲🇽",484],["Brasilien","🇧🇷",76],
-  ["Argentina","🇦🇷",32],["Chile","🇨🇱",152],["Peru","🇵🇪",604],["Colombia","🇨🇴",170],
-  ["Uruguay","🇺🇾",858],["Forenede Arabiske Emirater","🇦🇪",784],["Saudi-Arabien","🇸🇦",682],
-  ["Qatar","🇶🇦",634],["Jordan","🇯🇴",400],
-].sort((a,b)=>a[0].localeCompare(b[0],"da"));
-
-const COUNTRY_ISO = {};
-COUNTRIES.forEach(([name,flag,iso]) => COUNTRY_ISO[name] = iso);
-const COUNTRY_FLAG = {};
-COUNTRIES.forEach(([name,flag]) => COUNTRY_FLAG[name] = flag);
-
-// ─── UTILS ───────────────────────────────────────────────────
-function t2s(t) {
-  if (t == null) return null;
-  const str = String(t).trim();
-  if (!str) return null;
-  const p = str.split(":").map(Number);
-  if (p.some(isNaN)) return null;
-  if (p.length === 3) return p[0]*3600 + p[1]*60 + p[2];
-  if (p.length === 2) return p[0]*60 + p[1];
-  if (p.length === 1) return p[0]; // bare seconds
-  return null;
-}
-function s2t(s) {
-  if (s == null || isNaN(s)) return "–";
-  s = Math.round(s);
-  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sc = s%60;
-  if (h > 0) return `${h}:${String(m).padStart(2,"0")}:${String(sc).padStart(2,"0")}`;
-  return `${String(m).padStart(2,"0")}:${String(sc).padStart(2,"0")}`;
-}
-function paceFmt(dist, secs) {
-  if (!secs || !dist) return "–";
-  return s2t(Math.round(secs/dist)) + "/km";
-}
-function fmtDate(d) {
-  if (!d) return "–";
-  return new Date(d).toLocaleDateString("da-DK", { year:"numeric", month:"short", day:"numeric" });
-}
-function uid() { return Date.now() + "_" + Math.random().toString(36).slice(2); }
-
-// Given cumulative checkpoint times (array of 10 raw strings),
-// compute: cumulative seconds array, segment seconds array, total, half
-function computeRace(checkpointsRaw) {
-  // Always work with a clean 10-length array, even if data is missing/malformed
-  const arr = Array.isArray(checkpointsRaw) ? checkpointsRaw : [];
-  const safe = Array.from({length:10}, (_,i)=> arr[i] != null ? arr[i] : "");
-  const cum = safe.map(t2s); // cumulative secs at each checkpoint
-  const total = cum[9];
-  const half = cum[4];
-  // segment seconds
-  const segs = SEGMENTS.map(seg => {
-    const start = seg.from === -1 ? 0 : cum[seg.from];
-    const end = cum[seg.to];
-    if (start == null || end == null) return null;
-    return end - start;
-  });
-  // Second half marathon: 21.095 km → 42.195 km (= total − half)
-  const secondHalf = (total != null && half != null) ? total - half : null;
-  // 20–25 km combined (cum[5]=25km, cum[3]=20km)
-  const seg2025 = (cum[5] != null && cum[3] != null) ? cum[5] - cum[3] : null;
-  return { cum, segs, total, half, secondHalf, seg2025 };
-}
-
-// Validate a race and return a list of human-readable problems.
-// Used both on import and to mark incomplete races in the UI.
-function validateRace(r) {
-  const problems = [];
-  if (!r || typeof r !== "object") return ["Ugyldigt løb"];
-  if (!r.name || !String(r.name).trim()) problems.push("Mangler navn");
-  if (!r.country) problems.push("Mangler land");
-  else if (!COUNTRY_ISO[r.country]) problems.push("Ukendt land");
-  if (!r.date) problems.push("Mangler dato");
-
-  const cps = Array.isArray(r.checkpointsRaw) ? r.checkpointsRaw : [];
-  const cum = cps.map(t2s);
-  // Need at least a finish time
-  if (cum[9] == null) problems.push("Mangler sluttid");
-  // Times must increase with distance (a later checkpoint can't be earlier)
-  let prev = null, outOfOrder = false;
-  for (let i = 0; i < 10; i++) {
-    const v = cum[i];
-    if (v == null) continue;
-    if (prev != null && v < prev) outOfOrder = true;
-    prev = v;
+<script>
+function removeSplash(){
+  const s = document.getElementById("splash-screen");
+  if(s){
+    s.style.opacity = "0";
+    s.style.visibility = "hidden";
+    setTimeout(() => s.remove(), 400);
   }
-  if (outOfOrder) problems.push("Tider er ikke stigende");
-  // Count how many of the 10 checkpoints are filled
-  const filled = cum.filter(v => v != null).length;
-  if (filled > 0 && filled < 10) problems.push(`Mangler ${10 - filled} mellemtid(er)`);
-  if (filled === 0) problems.push("Ingen tider angivet");
-
-  return problems;
 }
+</script>
 
-// ─── STORAGE (single user, no login) ─────────────────────────
-const STORE_KEY = "rtw_races";
+<script type="text/babel">
+const { useState, useEffect, useMemo, useCallback, useRef } = React;
+
 const DB = {
   get: () => {
     try {
-      const raw = localStorage.getItem(STORE_KEY);
-      if (!raw) return [];
-      const data = JSON.parse(raw);
-      if (!Array.isArray(data)) return [];
-      // Keep only objects; drop anything malformed so one bad entry can't crash the app
-      return data.filter(r => r && typeof r === "object");
-    } catch (e) {
-      console.error("Kunne ikke læse gemte løb:", e);
+      const d = localStorage.getItem("rtw_races");
+      return d ? JSON.parse(d) : [];
+    } catch(e) {
+      console.error("DB fejl:", e);
       return [];
     }
   },
-  // Raw backup of whatever is stored, for recovery
-  getRaw: () => { try { return localStorage.getItem(STORE_KEY) || ""; } catch(e) { return ""; } },
-  save: (races) => { try { localStorage.setItem(STORE_KEY, JSON.stringify(races)); } catch(e) { console.error("Kunne ikke gemme:", e); } },
+  save: (data) => {
+    try {
+      localStorage.setItem("rtw_races", JSON.stringify(data));
+    } catch(e) {
+      console.error("Gem fejl:", e);
+    }
+  }
 };
 
-// ─── RUNNER GLYPH (replaces the "I" in RUNNING) ──────────────
-function RunnerGlyph({ size = 1 }) {
-  // Sized to sit like a capital letter on the baseline.
-  // Head (gold circle) acts as the dot; body is a running figure.
-  return (
-    <svg viewBox="0 0 20 34" style={{height:`${1.35*size}rem`,width:`${0.8*size}rem`,marginLeft:`${1.5*size}px`,marginRight:`${1.5*size}px`,display:"block",transform:"translateY(1px)"}}>
-      {/* head — doubles as the dot of the i */}
-      <circle cx="11" cy="5" r="4" fill="#c08820"/>
-      {/* torso */}
-      <path d="M11 9 L8.5 19" stroke="#c08820" strokeWidth="3" strokeLinecap="round"/>
-      {/* leading arm (forward) */}
-      <path d="M10 12 L16 11" stroke="#c08820" strokeWidth="2.6" strokeLinecap="round"/>
-      {/* trailing arm (back, bent) */}
-      <path d="M9.5 12 L4 14 L6 18" stroke="#c08820" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-      {/* front leg (striding forward) */}
-      <path d="M8.5 19 L14 24 L13 31" stroke="#c08820" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-      {/* back leg (pushing off) */}
-      <path d="M8.5 19 L4 26 L1 30" stroke="#c08820" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-    </svg>
-  );
-}
-
-// ─── BRAND LOGO ──────────────────────────────────────────────
-function BrandLogo({ size = 1 }) {
-  return (
-    <div style={{display:"flex",alignItems:"center",gap:10*size,userSelect:"none"}}>
-      <div style={{position:"relative",width:38*size,height:38*size,flexShrink:0}}>
-        <svg viewBox="0 0 48 48" style={{width:"100%",height:"100%"}}>
-          <circle cx="24" cy="24" r="22" fill="none" stroke="#1a6fc4" strokeWidth="2.5"/>
-          <ellipse cx="24" cy="24" rx="9" ry="22" fill="none" stroke="#1a6fc4" strokeWidth="1.3" opacity="0.55"/>
-          <line x1="2" y1="24" x2="46" y2="24" stroke="#1a6fc4" strokeWidth="1.3" opacity="0.55"/>
-          <line x1="5" y1="15" x2="43" y2="15" stroke="#1a6fc4" strokeWidth="1" opacity="0.4"/>
-          <line x1="5" y1="33" x2="43" y2="33" stroke="#1a6fc4" strokeWidth="1" opacity="0.4"/>
-          <circle cx="32" cy="14" r="4.2" fill="#c08820"/>
-        </svg>
-      </div>
-      <div style={{lineHeight:0.92}}>
-        <div style={{display:"flex",alignItems:"flex-end",fontFamily:"'Bebas Neue',sans-serif",fontSize:`${1.35*size}rem`,letterSpacing:`${2.5*size}px`,color:"#152235"}}>
-          <span>RUNN</span>
-          <RunnerGlyph size={size}/>
-          <span>NG</span>
-        </div>
-        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:`${1.35*size}rem`,letterSpacing:`${1*size}px`,color:"#1a6fc4",marginTop:-2}}>THE&nbsp;WORLD</div>
-      </div>
-    </div>
-  );
-}
-
-// ─── WORLD MAP ───────────────────────────────────────────────
-// Continent view boxes: [ [west, south], [east, north] ] in lon/lat.
-// America split at the Panama/Colombia border per standard geography
-// (Central America + Caribbean = North America).
-const REGIONS = [
-  { key:"world",  label:"🌍 Verden",      bounds:null },
-  { key:"europe", label:"Europa",         bounds:[[-25, 34],[45, 72]] },
-  { key:"africa", label:"Afrika",         bounds:[[-20,-36],[52, 38]] },
-  { key:"asia",   label:"Asien",          bounds:[[40, 5],[150, 75]] },
-  { key:"namer",  label:"Nordamerika",    bounds:[[-170, 7],[-52, 72]] },
-  { key:"samer",  label:"Sydamerika",     bounds:[[-82,-56],[-34, 13]] },
-  { key:"ocean",  label:"Oceanien",       bounds:[[110,-48],[180,-8]] },
-];
-
-function WorldMap({ races }) {
-  const svgRef = useRef(null);
-  const zoomRef = useRef(null);
-  const projRef = useRef(null);
-  const gRef = useRef(null);
-  const [tooltip, setTooltip] = useState({ visible:false, text:"", x:0, y:0 });
-  const worldRef = useRef(null);
-  const [ready, setReady] = useState(false);
-  const [error, setError] = useState(false);
-  const [activeRegion, setActiveRegion] = useState("world");
-
-  const W = 960, H = 480;
-
-  const visitedCodes = new Set();
-  const codeToNames = {};
-  races.forEach(r => {
-    if (r.country && COUNTRY_ISO[r.country]) {
-      const code = COUNTRY_ISO[r.country];
-      visitedCodes.add(code);
-      if (!codeToNames[code]) codeToNames[code] = [];
-      if (!codeToNames[code].includes(r.country)) codeToNames[code].push(r.country);
-    }
-  });
-
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      try {
-        if (!window.d3) await new Promise((res,rej)=>{const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js";s.onload=res;s.onerror=rej;document.head.appendChild(s);});
-        if (!window.topojson) await new Promise((res,rej)=>{const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js";s.onload=res;s.onerror=rej;document.head.appendChild(s);});
-        if (!window._worldGeo) { const resp = await fetch("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json"); window._worldGeo = await resp.json(); }
-        if (!cancelled) { worldRef.current = window._worldGeo; setReady(true); }
-      } catch(e) { if (!cancelled) setError(true); }
-    }
-    load();
-    return () => { cancelled = true; };
-  }, []);
-
-  useEffect(() => {
-    if (!ready || !svgRef.current || !worldRef.current) return;
-    const d3 = window.d3, topojson = window.topojson;
-    const world = worldRef.current;
-    const svg = d3.select(svgRef.current);
-    svg.selectAll("*").remove();
-    svg.attr("viewBox", `0 0 ${W} ${H}`);
-
-    const proj = d3.geoNaturalEarth1().scale(150).translate([W/2,H/2]);
-    projRef.current = proj;
-    const path = d3.geoPath().projection(proj);
-
-    // Ocean background (fixed, doesn't zoom)
-    svg.append("rect").attr("width",W).attr("height",H).attr("fill","#b8d8f0");
-
-    // Zoomable group
-    const g = svg.append("g");
-    gRef.current = g;
-
-    const graticule = d3.geoGraticule()();
-    g.append("path").datum(graticule).attr("d",path).attr("fill","none").attr("stroke","#a0c8e8").attr("stroke-width",0.3);
-    const countries = topojson.feature(world, world.objects.countries);
-    const borders = topojson.mesh(world, world.objects.countries, (a,b)=>a!==b);
-    g.selectAll(".country").data(countries.features).enter().append("path")
-      .attr("class","country").attr("d",path)
-      .attr("fill", d => visitedCodes.has(+d.id) ? "#1a6fc4" : "#daeef8")
-      .attr("stroke","#fff").attr("stroke-width",0.3)
-      .style("cursor", d => visitedCodes.has(+d.id) ? "pointer" : "default")
-      .on("touchstart mousemove", function(event,d){
-        const code = +d.id; const names = codeToNames[code] || []; if(!names.length) return;
-        const cnt = races.filter(r=>names.includes(r.country)).length;
-        const rect = svgRef.current.closest(".map-outer").getBoundingClientRect();
-        const cx = (event.touches ? event.touches[0].clientX : event.clientX) - rect.left;
-        const cy = (event.touches ? event.touches[0].clientY : event.clientY) - rect.top;
-        setTooltip({ visible:true, text:`${names[0]} — ${cnt} løb`, x:cx+12, y:cy+12 });
-      })
-      .on("mouseleave touchend", ()=>setTooltip(t=>({...t,visible:false})));
-    g.append("path").datum(borders).attr("d",path).attr("fill","none").attr("stroke","#fff").attr("stroke-width",0.5);
-
-    // Zoom + pan (pinch on touch, scroll/drag on desktop)
-    const zoom = d3.zoom()
-      .scaleExtent([1, 12])
-      .translateExtent([[0,0],[W,H]])
-      .on("zoom", (event) => { g.attr("transform", event.transform); });
-    zoomRef.current = zoom;
-    svg.call(zoom);
-    // double-tap / double-click to reset
-    svg.on("dblclick.zoom", null);
-    svg.on("dblclick", () => zoomToRegion("world"));
-  }, [ready, races]);
-
-  // Zoom the map to a region's bounding box
-  function zoomToRegion(key) {
-    setActiveRegion(key);
-    const d3 = window.d3;
-    if (!d3 || !svgRef.current || !zoomRef.current || !projRef.current) return;
-    const region = REGIONS.find(r=>r.key===key);
-    const svg = d3.select(svgRef.current);
-    if (!region || !region.bounds) {
-      svg.transition().duration(600).call(zoomRef.current.transform, d3.zoomIdentity);
-      return;
-    }
-    const proj = projRef.current;
-    // project the four corners to pixel space
-    const [[w,s],[e,n]] = region.bounds;
-    const pts = [proj([w,n]), proj([e,n]), proj([e,s]), proj([w,s])].filter(Boolean);
-    if (pts.length < 4) return;
-    const xs = pts.map(p=>p[0]), ys = pts.map(p=>p[1]);
-    const x0=Math.min(...xs), x1=Math.max(...xs), y0=Math.min(...ys), y1=Math.max(...ys);
-    const bw = x1-x0, bh = y1-y0;
-    const k = Math.max(1, Math.min(12, 0.9 / Math.max(bw/W, bh/H)));
-    const tx = (x0+x1)/2, ty = (y0+y1)/2;
-    const transform = d3.zoomIdentity.translate(W/2, H/2).scale(k).translate(-tx, -ty);
-    svg.transition().duration(600).call(zoomRef.current.transform, transform);
-  }
-
-  const visited = new Set(races.map(r=>r.country).filter(Boolean));
-
-  return (
-    <div>
-      <div style={{display:"flex",gap:28,marginBottom:14,flexWrap:"wrap"}}>
-        {[{val:visited.size,lbl:"Lande"},{val:races.length,lbl:"Løb i alt"}].map(s=>(
-          <div key={s.lbl}>
-            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2.2rem",color:"#1a6fc4",lineHeight:1}}>{s.val}</div>
-            <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.6rem",letterSpacing:"1.5px",color:"#6a87a8",textTransform:"uppercase"}}>{s.lbl}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Continent quick-zoom buttons */}
-      <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>
-        {REGIONS.map(reg=>(
-          <button key={reg.key} onClick={()=>zoomToRegion(reg.key)} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.64rem",letterSpacing:0.3,padding:"7px 12px",borderRadius:20,background:activeRegion===reg.key?"#1a6fc4":"#fff",border:`1px solid ${activeRegion===reg.key?"#1a6fc4":"#ccddf0"}`,color:activeRegion===reg.key?"#fff":"#6a87a8",cursor:"pointer",whiteSpace:"nowrap"}}>{reg.label}</button>
-        ))}
-      </div>
-
-      <div className="map-outer" style={{position:"relative",background:"#b8d8f0",borderRadius:10,overflow:"hidden",border:"1px solid #ccddf0",boxShadow:"0 4px 20px rgba(26,111,196,.1)"}}>
-        {!ready && !error && <div style={{padding:40,textAlign:"center",fontFamily:"'DM Mono',monospace",fontSize:"0.75rem",color:"#6a87a8"}}>Indlæser verdenskort…</div>}
-        {error && <div style={{padding:40,textAlign:"center",fontFamily:"'DM Mono',monospace",fontSize:"0.75rem",color:"#6a87a8"}}>Kortet kunne ikke indlæses. Tjek din internetforbindelse.</div>}
-        {ready && <svg ref={svgRef} style={{width:"100%",height:"auto",display:"block",touchAction:"none"}} />}
-        {tooltip.visible && <div style={{position:"absolute",top:tooltip.y,left:tooltip.x,background:"#fff",border:"1px solid #1a6fc4",padding:"6px 12px",fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",pointerEvents:"none",whiteSpace:"nowrap",boxShadow:"0 4px 12px rgba(26,111,196,.15)",zIndex:10,borderRadius:4}}>{tooltip.text}</div>}
-        {ready && <div style={{position:"absolute",bottom:8,right:10,fontFamily:"'DM Mono',monospace",fontSize:"0.55rem",color:"#5a7a98",background:"rgba(255,255,255,0.75)",padding:"3px 8px",borderRadius:6,pointerEvents:"none"}}>Knib for at zoome · træk for at flytte</div>}
-      </div>
-
-      <div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:14}}>
-        {[...visited].map(c=>{
-          const n = races.filter(r=>r.country===c).length;
-          return <span key={c} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.65rem",letterSpacing:"0.5px",padding:"4px 11px",border:"1px solid #1a6fc4",color:"#1a6fc4",borderRadius:20,background:"#fff"}}>{COUNTRY_FLAG[c]||""} {c} ({n})</span>;
-        })}
-      </div>
-    </div>
-  );
-}
-
-// ─── MAJORS / EMC VIEW ───────────────────────────────────────
-function SeriesGrid({ races, series, accent }) {
-  return (
-    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(270px,1fr))",gap:10}}>
-      {series.map((m,i)=>{
-        const runs = races.filter(r=>r.major===m.name).sort((a,b)=>new Date(a.date)-new Date(b.date));
-        const times = runs.map(r=>t2s(r.totalTime)).filter(Boolean);
-        const pb = times.length ? Math.min(...times) : null;
-        return (
-          <div key={m.name} style={{background:runs.length?"#f5f9ff":"#fff",border:`1px solid ${runs.length?"#c0d8f5":"#e2ebf5"}`,borderRadius:12,padding:"20px 22px",position:"relative",overflow:"hidden",borderLeft:`4px solid ${runs.length?accent:"#e2ebf5"}`}}>
-            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"3.5rem",color:"rgba(26,111,196,0.07)",position:"absolute",right:12,top:4,lineHeight:1}}>{String(i+1).padStart(2,"0")}</div>
-            <div style={{fontSize:"1.6rem",marginBottom:6}}>{m.flag}</div>
-            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.35rem",letterSpacing:1.5}}>{m.name}</div>
-            <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.63rem",color:"#6a87a8",letterSpacing:0.5,textTransform:"uppercase",marginBottom:12}}>{m.city}</div>
-            <span style={{fontFamily:"'DM Mono',monospace",fontSize:"0.6rem",letterSpacing:"1px",padding:"4px 10px",borderRadius:20,background:runs.length?accent:"transparent",color:runs.length?"#fff":"#6a87a8",border:runs.length?"none":"1px solid #ccddf0"}}>
-              {runs.length?`✓ ${runs.length}× gennemført`:"Mangler"}
-            </span>
-            {runs.length>0 && (
-              <div style={{display:"flex",flexDirection:"column",gap:4,marginTop:12}}>
-                {runs.map(r=>{
-                  const s=t2s(r.totalTime); const isPB=s&&s===pb&&runs.length>1;
-                  return <div key={r.id} style={{display:"flex",justifyContent:"space-between",fontFamily:"'DM Mono',monospace",fontSize:"0.72rem",padding:"5px 9px",background:"rgba(26,111,196,0.06)",borderRadius:6,borderLeft:`2px solid ${accent}`}}>
-                    <span style={{color:"#6a87a8"}}>{r.date?new Date(r.date).toLocaleDateString("da-DK",{year:"numeric",month:"short"}):"–"}</span>
-                    <span style={{color:"#1a6fc4",fontWeight:500}}>{r.totalTime||"–"}{isPB?" 🏆":""}</span>
-                  </div>;
-                })}
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function MajorsView({ races }) {
-  return <SeriesGrid races={races} series={MAJORS} accent="#1a6fc4"/>;
-}
-
-function EmcView({ races }) {
-  return <SeriesGrid races={races} series={EMC} accent="#1a8c50"/>;
-}
-
-// ─── RACE FORM MODAL ─────────────────────────────────────────
-function RaceModal({ race, onSave, onClose }) {
-  // Each checkpoint is stored internally as a raw digit string (e.g. "14530").
-  // We display it formatted live ("1:45:30") and only convert at save time.
-  // Storing raw digits avoids any mid-typing corruption.
-
-  // Turn a saved "h:mm:ss" / "mm:ss" string back into raw digits
-  function strToDigits(str) {
-    if (!str) return "";
-    const p = String(str).split(":").map(x => x.trim());
-    if (p.length === 3) return String(parseInt(p[0])||0) + String(p[1]).padStart(2,"0") + String(p[2]).padStart(2,"0");
-    if (p.length === 2) return String(parseInt(p[0])||0) + String(p[1]).padStart(2,"0");
-    return p[0] || "";
-  }
-  // Format raw digits for DISPLAY: last 2 = seconds, next 2 = minutes, rest = hours
-  function digitsToDisplay(d) {
-    if (!d) return "";
-    d = d.replace(/\D/g, "").slice(0, 6);
-    if (d.length <= 2) return d; // still typing seconds
-    const s = d.slice(-2);
-    const m = d.slice(-4, -2);
-    const h = d.slice(0, -4);
-    return h ? `${h}:${m}:${s}` : `${m}:${s}`;
-  }
-  // Convert raw digits to total seconds
-  function digitsToSeconds(d) {
-    if (!d) return null;
-    d = d.replace(/\D/g, "").slice(0, 6);
-    if (d.length < 3) return null; // need at least m:ss worth
-    const s = parseInt(d.slice(-2)) || 0;
-    const m = parseInt(d.slice(-4, -2)) || 0;
-    const h = parseInt(d.slice(0, -4)) || 0;
-    return h * 3600 + m * 60 + s;
-  }
-
-  const [form, setForm] = useState(() => {
-    const cpsStr = race ? (race.checkpointsRaw || Array(10).fill("")) : Array(10).fill("");
-    return {
-      name: race?.name||"", country: race?.country||"", date: race?.date||"", major: race?.major||"",
-      cps: cpsStr.map(strToDigits), // store as raw digit strings
-    };
-  });
-  const [err, setErr] = useState("");
-
-  function handleSave() {
-    if (!form.name.trim()) { setErr("Angiv løbsnavn"); return; }
-    const cpsStr = form.cps.map(d => { const sec = digitsToSeconds(d); return sec != null ? s2t(sec) : ""; });
-    const total = digitsToSeconds(form.cps[9]);
-    onSave({
-      id: race ? race.id : uid(),
-      name: form.name.trim(), country: form.country, date: form.date, major: form.major,
-      checkpointsRaw: cpsStr,
-      totalTime: total != null ? s2t(total) : null,
-    });
-  }
-
-  const inp = { background:"#f2f7fc", border:"1px solid #ccddf0", borderRadius:8, color:"#152235", padding:"11px 12px", fontFamily:"'DM Mono',monospace", fontSize:"16px", width:"100%", outline:"none", boxSizing:"border-box" };
-  const lbl = { display:"block", fontFamily:"'DM Mono',monospace", fontSize:"0.6rem", letterSpacing:"1.5px", color:"#6a87a8", textTransform:"uppercase", marginBottom:5 };
-
-  return (
-    <div style={{position:"fixed",inset:0,background:"rgba(100,150,200,0.45)",backdropFilter:"blur(4px)",zIndex:200,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
-      <div style={{background:"#fff",borderRadius:"18px 18px 0 0",padding:"24px 20px calc(24px + env(safe-area-inset-bottom))",width:560,maxWidth:"100%",maxHeight:"94vh",overflowY:"auto",boxShadow:"0 -8px 40px rgba(26,111,196,.2)"}}>
-        <div style={{width:40,height:4,background:"#ccddf0",borderRadius:2,margin:"0 auto 18px"}}/>
-        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.7rem",letterSpacing:2,color:"#1a6fc4",marginBottom:18}}>{race?"Rediger løb":"Tilføj løb"}</div>
-
-        <div style={{marginBottom:12}}><label style={lbl}>Løbsnavn</label><input style={inp} value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="f.eks. Copenhagen Marathon"/></div>
-
-        <div style={{marginBottom:12}}>
-          <label style={lbl}>Land</label>
-          <select style={{...inp,appearance:"none",backgroundImage:"url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236a87a8' stroke-width='1.5' fill='none'/%3E%3C/svg%3E\")",backgroundRepeat:"no-repeat",backgroundPosition:"right 14px center"}} value={form.country} onChange={e=>setForm(f=>({...f,country:e.target.value}))}>
-            <option value="">— Vælg land —</option>
-            {COUNTRIES.map(([name,flag])=><option key={name} value={name}>{flag} {name}</option>)}
-          </select>
-        </div>
-
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
-          <div><label style={lbl}>Dato</label><input type="date" style={inp} value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))}/></div>
-          <div>
-            <label style={lbl}>Del af serie?</label>
-            <select style={{...inp,appearance:"none",backgroundImage:"url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236a87a8' stroke-width='1.5' fill='none'/%3E%3C/svg%3E\")",backgroundRepeat:"no-repeat",backgroundPosition:"right 14px center"}} value={form.major} onChange={e=>setForm(f=>({...f,major:e.target.value}))}>
-              <option value="">Nej</option>
-              <optgroup label="World Marathon Majors">
-                {MAJORS.map(m=><option key={"maj-"+m.name} value={m.name}>{m.name}</option>)}
-              </optgroup>
-              <optgroup label="European Marathon Classics">
-                {EMC.filter(e=>!MAJORS.some(m=>m.name===e.name)).map(e=><option key={"emc-"+e.name} value={e.name}>{e.name}</option>)}
-              </optgroup>
-            </select>
-          </div>
-        </div>
-
-        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.1rem",letterSpacing:1.5,color:"#1a6fc4",margin:"18px 0 4px"}}>Tider undervejs</div>
-        <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",color:"#6a87a8",marginBottom:14,lineHeight:1.5}}>Indtast den tid uret viste ved hvert punkt (kumulativ tid). Bare tast tallene — kolon sættes automatisk. Fx <b>14530</b> → <b>1:45:30</b>, eller <b>2952</b> → <b>29:52</b>.</div>
-
-        <div className="race-form-fields" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-          {CHECKPOINTS.map((cp,i)=>{
-            const accent = i===4?"#1a6fc4":i===9?"#c08820":null;
-            const isLast = i===9;
-            return (
-              <div key={i} style={isLast?{gridColumn:"1 / -1"}:{}}>
-                <label style={{...lbl, color:accent||"#6a87a8"}}>{cp.label}{i===4?" ⭐":i===9?" 🏁":""}</label>
-                <input
-                  style={{...inp, ...(accent?{borderColor:accent}:{})}}
-                  placeholder="t:mm:ss"
-                  value={digitsToDisplay(form.cps[i])}
-                  type="text" inputMode="numeric" pattern="[0-9]*"
-                  enterKeyHint={isLast?"done":"next"}
-                  onKeyDown={e=>{
-                    if(e.key==="Enter" && !isLast){
-                      e.preventDefault();
-                      const inputs = e.target.closest("form, .race-form-fields")
-                        ? Array.from(e.target.closest(".race-form-fields").querySelectorAll("input"))
-                        : Array.from(document.querySelectorAll(".race-form-fields input"));
-                      const idx = inputs.indexOf(e.target);
-                      if(idx>=0 && inputs[idx+1]) inputs[idx+1].focus();
-                    }
-                  }}
-                  onChange={e=>{
-                    const digits = e.target.value.replace(/\D/g,"").slice(0,6);
-                    setForm(f=>{ const cps=[...f.cps]; cps[i]=digits; return {...f,cps}; });
-                  }}
-                />
-              </div>
-            );
-          })}
-        </div>
-
-        {err && <div style={{color:"#d03030",fontFamily:"'DM Mono',monospace",fontSize:"0.7rem",marginTop:10}}>{err}</div>}
-        <div style={{display:"flex",gap:8,marginTop:20}}>
-          <button onClick={onClose} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.75rem",padding:"14px 18px",background:"#f2f7fc",border:"1px solid #ccddf0",borderRadius:10,color:"#6a87a8",cursor:"pointer"}}>Annuller</button>
-          <button onClick={handleSave} style={{flex:1,fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.1rem",letterSpacing:2,padding:"14px",background:"#1a6fc4",color:"#fff",border:"none",borderRadius:10,cursor:"pointer"}}>GEM LØB</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── RACES VIEW ──────────────────────────────────────────────
-function RacesView({ races, onAdd, onEdit, onDelete, onExport, onImport }) {
-  const sorted = [...races].sort((a,b)=>new Date(a.date)-new Date(b.date));
-  const times = races.map(r=>t2s(r.totalTime)).filter(Boolean);
-  const pb = times.length ? Math.min(...times) : null;
-
-  return (
-    <div>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,gap:12}}>
-        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2.2rem",letterSpacing:2}}>Alle <span style={{color:"#1a6fc4"}}>løb</span></div>
-        <button onClick={onAdd} style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"0.95rem",letterSpacing:2,padding:"11px 20px",background:"#1a6fc4",color:"#fff",border:"none",borderRadius:10,cursor:"pointer",whiteSpace:"nowrap"}}>+ Tilføj</button>
-      </div>
-      <div style={{display:"flex",gap:8,marginBottom:18}}>
-        <button onClick={onExport} style={{flex:1,fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",letterSpacing:0.5,padding:"10px",border:"1px solid #ccddf0",background:"#fff",borderRadius:8,color:"#1a6fc4",cursor:"pointer"}}>⬇ Gem backup</button>
-        <button onClick={onImport} style={{flex:1,fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",letterSpacing:0.5,padding:"10px",border:"1px solid #ccddf0",background:"#fff",borderRadius:8,color:"#1a6fc4",cursor:"pointer"}}>⬆ Indlæs backup</button>
-      </div>
-      {races.length===0 ? (
-        <div style={{textAlign:"center",padding:"50px 20px",fontFamily:"'DM Mono',monospace",fontSize:"0.78rem",color:"#6a87a8"}}>Ingen løb endnu — tryk "Tilføj" for at starte 🏃</div>
-      ) : (
-        <div style={{display:"flex",flexDirection:"column",gap:10}}>
-          {sorted.map((r,i)=>{
-            const s=t2s(r.totalTime); const isPB=s&&s===pb;
-            const flagged = r.needsReview;
-            return (
-              <div key={r.id} style={{background:flagged?"#fff8ec":"#fff",border:`1px solid ${flagged?"#f0d49a":"#e2ebf5"}`,borderRadius:12,padding:"14px 16px",boxShadow:"0 1px 6px rgba(26,111,196,.05)"}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}}>
-                  <div style={{minWidth:0,flex:1}}>
-                    <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
-                      {flagged && <span style={{fontSize:"0.85rem"}} title="Mangler oplysninger">⚠️</span>}
-                      {r.major && <span style={{fontSize:"0.7rem"}}>⭐</span>}
-                      <span style={{fontFamily:"'DM Sans',sans-serif",fontWeight:600,fontSize:"1rem"}}>{r.name||"(uden navn)"}</span>
-                      {isPB && <span style={{fontFamily:"'DM Mono',monospace",fontSize:"0.55rem",letterSpacing:1,padding:"2px 7px",background:"#c08820",color:"#fff",borderRadius:4}}>PB</span>}
-                    </div>
-                    <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",color:"#6a87a8",marginTop:4}}>
-                      {COUNTRY_FLAG[r.country]||""} {r.country||"–"} · {fmtDate(r.date)}
-                    </div>
-                    {flagged && r.reviewNotes && r.reviewNotes.length>0 && (
-                      <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",color:"#c08820",marginTop:6,lineHeight:1.4}}>
-                        Skal rettes: {r.reviewNotes.join(" · ")}
-                      </div>
-                    )}
-                  </div>
-                  <div style={{textAlign:"right",flexShrink:0}}>
-                    <div style={{fontFamily:"'DM Mono',monospace",fontSize:"1.1rem",color:"#1a6fc4",fontWeight:500}}>{r.totalTime||"–"}</div>
-                    <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",color:"#6a87a8"}}>{paceFmt(42.195,s)}</div>
-                  </div>
-                </div>
-                <div style={{display:"flex",gap:8,marginTop:12,borderTop:`1px solid ${flagged?"#f3e3c2":"#f0f5fa"}`,paddingTop:10}}>
-                  <button onClick={()=>onEdit(r)} style={{flex:1,fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",letterSpacing:0.5,padding:"8px",border:"1px solid #ccddf0",background:flagged?"#fff":"#f2f7fc",borderRadius:8,color:"#1a6fc4",cursor:"pointer"}}>{flagged?"Ret nu":"Rediger"}</button>
-                  <button onClick={()=>onDelete(r)} style={{flex:1,fontFamily:"'DM Mono',monospace",fontSize:"0.68rem",letterSpacing:0.5,padding:"8px",border:"1px solid #f2d0d0",background:"#fdf5f5",borderRadius:8,color:"#d03030",cursor:"pointer"}}>Slet</button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── STATS VIEW (mobile-first) ───────────────────────────────
-function StatsView({ races }) {
-  const sorted = [...races].sort((a,b)=>new Date(a.date)-new Date(b.date));
-  const [mode, setMode] = useState("ranking"); // "ranking" | "detail" | "compare"
-  const [detailId, setDetailId] = useState(sorted.length ? sorted[sorted.length-1].id : null);
-  const [rankBy, setRankBy] = useState("total"); // "total" | seg index string | "half" | "sprint"
-
-  useEffect(()=>{ if(sorted.length && !sorted.find(r=>r.id===detailId)) setDetailId(sorted[sorted.length-1].id); },[races]);
-
-  if (!races.length) return <div style={{textAlign:"center",padding:50,fontFamily:"'DM Mono',monospace",fontSize:"0.78rem",color:"#6a87a8"}}>Ingen løb at vise statistik for endnu</div>;
-
-  const allTimes = races.map(r=>t2s(r.totalTime)).filter(Boolean);
-  const pb = allTimes.length ? Math.min(...allTimes) : null;
-  const avgTime = allTimes.length ? allTimes.reduce((a,b)=>a+b,0)/allTimes.length : null;
-
-  const tabBtn = (id,label) => (
-    <button onClick={()=>setMode(id)} style={{flex:1,fontFamily:"'DM Mono',monospace",fontSize:"0.66rem",letterSpacing:0.5,padding:"10px 4px",background:mode===id?"#1a6fc4":"#fff",border:`1px solid ${mode===id?"#1a6fc4":"#ccddf0"}`,color:mode===id?"#fff":"#6a87a8",cursor:"pointer",borderRadius:8}}>{label}</button>
-  );
-
-  // ── Ranking options ──
-  // Build the per-segment options, inserting "20–25 km" just before "25–30 km".
-  const segOptions = [];
-  SEGMENTS.slice(0,9).forEach((seg,i)=>{
-    if (seg.label === "25–30 km") {
-      segOptions.push({ key:"s2025", label:"20–25 km", getVal:r=>computeRace(r.checkpointsRaw).seg2025, dist:5 });
-    }
-    segOptions.push({ key:"seg"+i, label:seg.label, getVal:r=>computeRace(r.checkpointsRaw).segs[i], dist:seg.dist });
-  });
-
-  const rankOptions = [
-    { key:"total", label:"Sluttid", getVal:r=>computeRace(r.checkpointsRaw).total, dist:42.195 },
-    { key:"half", label:"1. halvmaraton", getVal:r=>computeRace(r.checkpointsRaw).half, dist:21.0975 },
-    { key:"half2", label:"2. halvmaraton", getVal:r=>computeRace(r.checkpointsRaw).secondHalf, dist:21.1 },
-    { key:"sprint", label:"Spurt 40→mål", getVal:r=>computeRace(r.checkpointsRaw).segs[9], dist:2.195 },
-    ...segOptions,
-  ];
-  const activeRank = rankOptions.find(o=>o.key===rankBy) || rankOptions[0];
-
-  const summaryCards = (
-    <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10,marginBottom:18}}>
-      {[
-        {val:races.length,lbl:"Løb i alt"},
-        {val:pb?s2t(pb):"–",lbl:"Personlig rekord"},
-        {val:avgTime?s2t(Math.round(avgTime)):"–",lbl:"Gennemsnitstid"},
-        {val:pb?paceFmt(42.195,pb):"–",lbl:"Bedste tempo"},
-      ].map(c=>(
-        <div key={c.lbl} style={{background:"#fff",border:"1px solid #e2ebf5",borderRadius:12,padding:"14px 16px"}}>
-          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.7rem",color:"#1a6fc4",lineHeight:1,marginBottom:2}}>{c.val}</div>
-          <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.55rem",letterSpacing:"1px",color:"#6a87a8",textTransform:"uppercase"}}>{c.lbl}</div>
-        </div>
-      ))}
-    </div>
-  );
-
-  return (
-    <div>
-      {summaryCards}
-      <div style={{display:"flex",gap:6,marginBottom:18}}>
-        {tabBtn("ranking","🏆 Rangering")}
-        {tabBtn("detail","🔍 Et løb")}
-        {tabBtn("compare","⚖️ Sammenlign")}
-      </div>
-
-      {mode==="ranking" && (
-        <div>
-          <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",color:"#6a87a8",letterSpacing:1,textTransform:"uppercase",marginBottom:8}}>Rangér løb efter:</div>
-          <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:18}}>
-            {rankOptions.map(o=>(
-              <button key={o.key} onClick={()=>setRankBy(o.key)} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.64rem",padding:"7px 12px",borderRadius:20,background:rankBy===o.key?"#1a6fc4":"#fff",border:`1px solid ${rankBy===o.key?"#1a6fc4":"#ccddf0"}`,color:rankBy===o.key?"#fff":"#6a87a8",cursor:"pointer"}}>{o.label}</button>
-            ))}
-          </div>
-          <RankingList races={sorted} option={activeRank}/>
-        </div>
-      )}
-
-      {mode==="detail" && (
-        <div>
-          <select value={detailId||""} onChange={e=>setDetailId(e.target.value)} style={{width:"100%",background:"#fff",border:"1px solid #ccddf0",borderRadius:10,padding:"12px 14px",fontFamily:"'DM Mono',monospace",fontSize:"16px",color:"#152235",marginBottom:18,appearance:"none",backgroundImage:"url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236a87a8' stroke-width='1.5' fill='none'/%3E%3C/svg%3E\")",backgroundRepeat:"no-repeat",backgroundPosition:"right 14px center"}}>
-            {sorted.map(r=><option key={r.id} value={r.id}>{r.name} — {r.date?new Date(r.date).getFullYear():""}</option>)}
-          </select>
-          <DetailView race={sorted.find(r=>r.id===detailId)}/>
-        </div>
-      )}
-
-      {mode==="compare" && <CompareView races={sorted}/>}
-    </div>
-  );
-}
-
-function RankingList({ races, option }) {
-  const ranked = races.map(r=>({ r, val:option.getVal(r) }))
-    .filter(x=>x.val!=null)
-    .sort((a,b)=>a.val-b.val);
-  if (!ranked.length) return <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.72rem",color:"#6a87a8",padding:20,textAlign:"center"}}>Ingen tider registreret for dette punkt</div>;
-  const best = ranked[0].val;
-  return (
-    <div style={{display:"flex",flexDirection:"column",gap:8}}>
-      {ranked.map((x,i)=>{
-        const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":`${i+1}.`;
-        const diff = x.val - best;
-        return (
-          <div key={x.r.id} style={{display:"flex",alignItems:"center",gap:12,background:i===0?"#f0f7ff":"#fff",border:`1px solid ${i===0?"#c0d8f5":"#e2ebf5"}`,borderRadius:10,padding:"12px 14px"}}>
-            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.3rem",width:30,textAlign:"center",color:"#1a6fc4"}}>{medal}</div>
-            <div style={{flex:1,minWidth:0}}>
-              <div style={{fontFamily:"'DM Sans',sans-serif",fontWeight:600,fontSize:"0.9rem",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{COUNTRY_FLAG[x.r.country]||""} {x.r.name}</div>
-              <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",color:"#6a87a8"}}>{x.r.date?new Date(x.r.date).getFullYear():""} · {paceFmt(option.dist,x.val)}</div>
-            </div>
-            <div style={{textAlign:"right"}}>
-              <div style={{fontFamily:"'DM Mono',monospace",fontSize:"1rem",color:"#1a6fc4",fontWeight:500}}>{s2t(x.val)}</div>
-              {i>0 && <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.6rem",color:"#d03030"}}>+{s2t(diff)}</div>}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function DetailView({ race }) {
-  if (!race) return null;
-  const { cum, segs, total, half } = computeRace(race.checkpointsRaw);
-  const segPaces = segs.map((s,i)=> s!=null ? s/SEGMENTS[i].dist : null);
-  const valid = segPaces.filter(p=>p!=null);
-  const maxP = valid.length?Math.max(...valid)*1.05:1;
-  const minP = valid.length?Math.min(...valid)*0.95:0;
-  const fastestSeg = valid.length?Math.min(...valid):null;
-  const slowestSeg = valid.length?Math.max(...valid):null;
-
-  return (
-    <div>
-      {/* Bar chart */}
-      <div style={{background:"#fff",border:"1px solid #e2ebf5",borderRadius:12,padding:"18px 16px",marginBottom:14}}>
-        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.1rem",letterSpacing:1,color:"#1a6fc4",marginBottom:4}}>Tempo pr. segment</div>
-        <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.58rem",color:"#6a87a8",marginBottom:14}}>Kort søjle = hurtigt · Grøn = hurtigste · Rød = langsomste</div>
-        <div style={{display:"flex",alignItems:"flex-end",gap:4,height:150,borderBottom:"1px solid #e2ebf5",paddingBottom:2}}>
-          {segs.map((s,i)=>{
-            const p = s!=null?s/SEGMENTS[i].dist:null;
-            const pct = p!=null ? Math.max(6,Math.round(((p-minP)/(maxP-minP||1))*88+8)) : 4;
-            const color = p===fastestSeg?"#1a8c50":p===slowestSeg?"#d03030":"#1a6fc4";
-            return (
-              <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-end",height:"100%"}}>
-                <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.5rem",color:"#6a87a8",marginBottom:2,whiteSpace:"nowrap"}}>{s!=null?s2t(s):""}</div>
-                <div style={{width:"100%",height:`${pct}%`,background:color,opacity:0.85,borderRadius:"3px 3px 0 0",minHeight:4}}/>
-              </div>
-            );
-          })}
-        </div>
-        <div style={{display:"flex",gap:4,marginTop:4}}>
-          {SEGMENTS.map((seg,i)=>(
-            <div key={i} style={{flex:1,fontFamily:"'DM Mono',monospace",fontSize:"0.45rem",color:"#6a87a8",textAlign:"center",lineHeight:1.1}}>{seg.label.replace(" km","").replace("Spurt ","")}</div>
-          ))}
-        </div>
-      </div>
-
-      {/* Split table */}
-      <div style={{background:"#fff",border:"1px solid #e2ebf5",borderRadius:12,padding:"6px 0",overflow:"hidden"}}>
-        <div style={{display:"flex",padding:"10px 16px",borderBottom:"2px solid #1a6fc4",fontFamily:"'DM Mono',monospace",fontSize:"0.55rem",letterSpacing:1,color:"#6a87a8",textTransform:"uppercase"}}>
-          <span style={{flex:"0 0 95px"}}>Segment</span>
-          <span style={{flex:1,textAlign:"right"}}>Split</span>
-          <span style={{flex:1,textAlign:"right"}}>Tempo</span>
-          <span style={{flex:1,textAlign:"right"}}>Samlet</span>
-        </div>
-        {SEGMENTS.map((seg,i)=>{
-          const s=segs[i]; const isHalf=i===4; const isSprint=i===9;
-          const cumHere = cum[seg.to];
-          return (
-            <div key={i} style={{display:"flex",padding:"10px 16px",borderBottom:"1px solid #f0f5fa",fontFamily:"'DM Mono',monospace",fontSize:"0.74rem",background:isHalf?"rgba(26,111,196,0.05)":isSprint?"rgba(192,136,32,0.06)":"transparent"}}>
-              <span style={{flex:"0 0 95px",color:isSprint?"#c08820":"#6a87a8",fontSize:"0.66rem",display:"flex",alignItems:"center"}}>{seg.label}{isSprint?" 🏁":""}</span>
-              <span style={{flex:1,textAlign:"right",color:"#152235",fontWeight:500}}>{s2t(s)}</span>
-              <span style={{flex:1,textAlign:"right",color:"#1a6fc4"}}>{paceFmt(seg.dist,s)}</span>
-              <span style={{flex:1,textAlign:"right",color:"#6a87a8"}}>{s2t(cumHere)}</span>
-            </div>
-          );
-        })}
-        {/* Half + total highlights */}
-        <div style={{display:"flex",padding:"12px 16px",fontFamily:"'DM Mono',monospace",fontSize:"0.8rem",background:"rgba(26,111,196,0.08)",fontWeight:600}}>
-          <span style={{flex:"0 0 95px",color:"#1a6fc4",fontSize:"0.68rem",display:"flex",alignItems:"center"}}>⭐ Halvmaraton</span>
-          <span style={{flex:2,textAlign:"right",color:"#1a6fc4"}}>{s2t(half)}</span>
-          <span style={{flex:1,textAlign:"right",color:"#6a87a8",fontSize:"0.66rem",alignSelf:"center"}}>{paceFmt(21.0975,half)}</span>
-        </div>
-        <div style={{display:"flex",padding:"12px 16px",fontFamily:"'DM Mono',monospace",fontSize:"0.9rem",background:"#1a6fc4",color:"#fff",fontWeight:600}}>
-          <span style={{flex:"0 0 95px",fontSize:"0.7rem",display:"flex",alignItems:"center"}}>🏁 SLUTTID</span>
-          <span style={{flex:2,textAlign:"right"}}>{s2t(total)}</span>
-          <span style={{flex:1,textAlign:"right",fontSize:"0.66rem",alignSelf:"center",opacity:0.85}}>{paceFmt(42.195,total)}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function CompareView({ races }) {
-  const [selected, setSelected] = useState(()=> new Set(races.slice(-2).map(r=>r.id)));
-  const sel = races.filter(r=>selected.has(r.id));
-  const toggle = id => setSelected(prev=>{ const n=new Set(prev); if(n.has(id))n.delete(id); else n.add(id); return n; });
-
-  const rows = [
-    ...CHECKPOINTS.map((cp,i)=>({ label:cp.label, get:rc=>computeRace(rc.checkpointsRaw).cum[i] })),
-  ];
-
-  return (
-    <div>
-      <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",color:"#6a87a8",letterSpacing:1,textTransform:"uppercase",marginBottom:8}}>Vælg løb at sammenligne:</div>
-      <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:18}}>
-        {races.map(r=>(
-          <button key={r.id} onClick={()=>toggle(r.id)} style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",padding:"7px 11px",borderRadius:20,background:selected.has(r.id)?"#1a6fc4":"#fff",border:`1px solid ${selected.has(r.id)?"#1a6fc4":"#ccddf0"}`,color:selected.has(r.id)?"#fff":"#6a87a8",cursor:"pointer"}}>{r.name.substring(0,16)} '{r.date?String(new Date(r.date).getFullYear()).slice(2):"?"}</button>
-        ))}
-      </div>
-      {sel.length<2 ? (
-        <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.72rem",color:"#6a87a8",padding:20,textAlign:"center"}}>Vælg mindst to løb</div>
-      ) : (
-        <div style={{overflowX:"auto",background:"#fff",border:"1px solid #e2ebf5",borderRadius:12}}>
-          <table style={{width:"100%",borderCollapse:"collapse",fontFamily:"'DM Mono',monospace",fontSize:"0.72rem",minWidth:sel.length*90+110}}>
-            <thead>
-              <tr style={{borderBottom:"2px solid #1a6fc4"}}>
-                <th style={{textAlign:"left",padding:"10px 12px",fontSize:"0.55rem",letterSpacing:1,color:"#6a87a8",textTransform:"uppercase",position:"sticky",left:0,background:"#fff"}}>Punkt</th>
-                {sel.map((r,i)=><th key={r.id} style={{textAlign:"right",padding:"10px 12px",fontSize:"0.58rem",letterSpacing:0.5,color:RACE_COLORS[i%RACE_COLORS.length],whiteSpace:"nowrap"}}>{r.name.substring(0,9)}<br/>'{r.date?String(new Date(r.date).getFullYear()).slice(2):"?"}</th>)}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row,ri)=>{
-                const vals = sel.map(r=>row.get(r));
-                const nn = vals.filter(v=>v!=null);
-                const best = nn.length>1?Math.min(...nn):null;
-                const worst = nn.length>1?Math.max(...nn):null;
-                const isHL = row.label==="Halvmaraton";
-                const isFin = row.label.startsWith("Mål");
-                return (
-                  <tr key={ri} style={{borderBottom:"1px solid #f0f5fa",background:isHL?"rgba(26,111,196,0.05)":isFin?"rgba(192,136,32,0.06)":"transparent"}}>
-                    <td style={{textAlign:"left",padding:"9px 12px",color:isHL?"#1a6fc4":isFin?"#c08820":"#6a87a8",fontWeight:isHL||isFin?600:400,position:"sticky",left:0,background:isHL?"#eef5fc":isFin?"#fbf6ed":"#fff",whiteSpace:"nowrap"}}>{row.label}</td>
-                    {vals.map((v,i)=>{
-                      const isBest=v===best; const isWorst=v===worst;
-                      return <td key={i} style={{textAlign:"right",padding:"9px 12px",color:isBest?"#1a8c50":isWorst?"#d03030":"#152235",fontWeight:isBest?600:400,whiteSpace:"nowrap"}}>{s2t(v)}</td>;
-                    })}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-      {sel.length>=2 && <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.58rem",color:"#6a87a8",marginTop:10,textAlign:"center"}}><span style={{color:"#1a8c50"}}>Grøn</span> = hurtigst ved punktet · <span style={{color:"#d03030"}}>Rød</span> = langsomst</div>}
-    </div>
-  );
-}
-
-// ─── DELETE CONFIRM ──────────────────────────────────────────
-function DeleteModal({ race, onConfirm, onClose }) {
-  return (
-    <div style={{position:"fixed",inset:0,background:"rgba(100,150,200,0.45)",backdropFilter:"blur(4px)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
-      <div style={{background:"#fff",borderRadius:16,padding:"28px 24px",width:340,maxWidth:"100%",boxShadow:"0 16px 48px rgba(200,50,50,.15)"}}>
-        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:2,color:"#d03030",marginBottom:10}}>Slet løb</div>
-        <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:"0.9rem",color:"#6a87a8",marginBottom:22,lineHeight:1.5}}>Slet <strong style={{color:"#152235"}}>{race?.name}</strong>? Dette kan ikke fortrydes.</p>
-        <div style={{display:"flex",gap:8}}>
-          <button onClick={onClose} style={{flex:1,fontFamily:"'DM Mono',monospace",fontSize:"0.75rem",padding:"13px",border:"1px solid #ccddf0",background:"#f2f7fc",borderRadius:10,color:"#6a87a8",cursor:"pointer"}}>Annuller</button>
-          <button onClick={onConfirm} style={{flex:1,fontFamily:"'Bebas Neue',sans-serif",fontSize:"1rem",letterSpacing:2,padding:"13px",background:"#d03030",color:"#fff",border:"none",borderRadius:10,cursor:"pointer"}}>SLET</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── IMPORT RESULT MODAL ─────────────────────────────────────
-function ImportResultModal({ result, onClose }) {
-  const r = result;
-  return (
-    <div style={{position:"fixed",inset:0,background:"rgba(100,150,200,0.45)",backdropFilter:"blur(4px)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:18}} onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
-      <div style={{background:"#fff",borderRadius:16,padding:"28px 24px",width:440,maxWidth:"100%",maxHeight:"86vh",overflowY:"auto",boxShadow:"0 16px 48px rgba(26,111,196,.18)"}}>
-        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:2,color:"#1a6fc4",marginBottom:14}}>Import</div>
-
-        {r.error ? (
-          <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:"0.9rem",color:"#d03030",marginBottom:20,lineHeight:1.5}}>{r.error}</p>
-        ) : (
-          <>
-            <div style={{display:"flex",gap:8,marginBottom:18}}>
-              <div style={{flex:1,background:"#f0f7ff",border:"1px solid #c0d8f5",borderRadius:10,padding:"12px 10px",textAlign:"center"}}>
-                <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.8rem",color:"#1a8c50",lineHeight:1}}>{r.imported}</div>
-                <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.55rem",letterSpacing:0.5,color:"#6a87a8",textTransform:"uppercase",marginTop:2}}>OK</div>
-              </div>
-              <div style={{flex:1,background:"#fff8ec",border:"1px solid #f0d49a",borderRadius:10,padding:"12px 10px",textAlign:"center"}}>
-                <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.8rem",color:"#c08820",lineHeight:1}}>{r.flagged}</div>
-                <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.55rem",letterSpacing:0.5,color:"#6a87a8",textTransform:"uppercase",marginTop:2}}>Markeret</div>
-              </div>
-              {r.skipped > 0 && (
-                <div style={{flex:1,background:"#f5f5f5",border:"1px solid #ddd",borderRadius:10,padding:"12px 10px",textAlign:"center"}}>
-                  <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.8rem",color:"#999",lineHeight:1}}>{r.skipped}</div>
-                  <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.55rem",letterSpacing:0.5,color:"#6a87a8",textTransform:"uppercase",marginTop:2}}>Sprunget</div>
-                </div>
-              )}
-            </div>
-
-            {r.flagged > 0 && (
-              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:"0.82rem",color:"#6a87a8",marginBottom:12,lineHeight:1.5}}>
-                Løb markeret med ⚠️ mangler oplysninger. De er importeret, men du bør rette dem under "Løb", så statistikken bliver korrekt.
-              </p>
-            )}
-
-            {/* Details list */}
-            <div style={{display:"flex",flexDirection:"column",gap:6,maxHeight:280,overflowY:"auto"}}>
-              {r.details.filter(d=>d.status!=="ok").map((d,i)=>(
-                <div key={i} style={{background:d.status==="flagged"?"#fff8ec":"#f5f5f5",border:`1px solid ${d.status==="flagged"?"#f0d49a":"#ddd"}`,borderRadius:8,padding:"10px 12px"}}>
-                  <div style={{fontFamily:"'DM Sans',sans-serif",fontWeight:600,fontSize:"0.85rem",marginBottom:3}}>{d.status==="flagged"?"⚠️ ":"⊘ "}{d.name}</div>
-                  <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",color:"#6a87a8"}}>{d.problems.join(" · ")}</div>
-                </div>
-              ))}
-              {r.flagged===0 && r.skipped===0 && (
-                <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.72rem",color:"#1a8c50",textAlign:"center",padding:10}}>Alle løb importeret uden problemer ✓</div>
-              )}
-            </div>
-          </>
-        )}
-
-        <button onClick={onClose} style={{width:"100%",marginTop:18,fontFamily:"'Bebas Neue',sans-serif",fontSize:"1rem",letterSpacing:2,padding:"13px",background:"#1a6fc4",color:"#fff",border:"none",borderRadius:10,cursor:"pointer"}}>OK</button>
-      </div>
-    </div>
-  );
-}
-
-// ─── APP ─────────────────────────────────────────────────────
 function App() {
   const [races, setRaces] = useState(() => DB.get());
   const [tab, setTab] = useState("map");
   const [raceModal, setRaceModal] = useState(null);
   const [deleteModal, setDeleteModal] = useState(null);
-  const [importResult, setImportResult] = useState(null); // {imported, flagged, skipped, details}
+  const [importResult, setImportResult] = useState(null); 
   const fileInputRef = useRef(null);
+
+  // 🏁 Fjerner automatisk venteskærmen når React er vågnet og klar!
+  useEffect(() => {
+    if (typeof removeSplash === "function") {
+      removeSplash();
+    }
+  }, []);
 
   const saveRaces = useCallback((newRaces)=>{ setRaces(newRaces); DB.save(newRaces); },[]);
 
-  function handleSaveRace(race) {
-    // Re-validate; clear the review flag if the race is now complete
-    const problems = validateRace(race);
-    race.needsReview = problems.length > 0;
-    race.reviewNotes = problems;
-    const existing = races.find(r=>r.id===race.id);
-    saveRaces(existing ? races.map(r=>r.id===race.id?race:r) : [...races,race]);
-    setRaceModal(null);
-  }
-  function handleDeleteRace() { if(deleteModal){ saveRaces(races.filter(r=>r.id!==deleteModal.id)); setDeleteModal(null); } }
-
-  // ── EXPORT: download all races as a JSON backup file ──
-  function handleExport() {
-    const payload = {
-      app: "Running The World",
-      version: 1,
-      exportedAt: new Date().toISOString(),
-      races: races,
-    };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    const stamp = new Date().toISOString().slice(0,10);
-    a.href = url;
-    a.download = `running-the-world-backup-${stamp}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(()=>URL.revokeObjectURL(url), 1000);
-  }
-
-  // ── IMPORT: read file, validate each race, flag incomplete ones ──
-  function handleImportFile(e) {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      try {
-        const data = JSON.parse(ev.target.result);
-        const incoming = Array.isArray(data) ? data : (Array.isArray(data.races) ? data.races : null);
-        if (!incoming) { setImportResult({ error: "Filen ser ikke ud til at være en gyldig backup." }); return; }
-
-        const existingIds = new Set(races.map(r=>r.id));
-        let imported = 0, flagged = 0, skipped = 0;
-        const details = [];
-        const toAdd = [];
-
-        incoming.forEach((raw, idx) => {
-          // Build a normalized race object
-          const r = {
-            id: raw.id && !existingIds.has(raw.id) ? raw.id : uid(),
-            name: raw.name || "",
-            country: raw.country || "",
-            date: raw.date || "",
-            major: raw.major || "",
-            checkpointsRaw: Array.isArray(raw.checkpointsRaw)
-              ? raw.checkpointsRaw.slice(0,10).concat(Array(10).fill("")).slice(0,10)
-              : Array(10).fill(""),
-            totalTime: raw.totalTime || null,
-          };
-          // recompute totalTime from finish checkpoint if missing
-          const finishSec = t2s(r.checkpointsRaw[9]);
-          if (finishSec != null) r.totalTime = s2t(finishSec);
-
-          const problems = validateRace(r);
-          // Skip totally empty / nameless garbage
-          if (!r.name.trim() && problems.includes("Ingen tider angivet")) {
-            skipped++;
-            details.push({ name: `Løb #${idx+1}`, status:"skipped", problems:["Tomt løb — sprunget over"] });
-            return;
-          }
-          if (problems.length > 0) {
-            r.needsReview = true;
-            r.reviewNotes = problems;
-            flagged++;
-            details.push({ name: r.name || `Løb #${idx+1}`, status:"flagged", problems });
-          } else {
-            r.needsReview = false;
-            r.reviewNotes = [];
-            imported++;
-            details.push({ name: r.name, status:"ok", problems:[] });
-          }
-          toAdd.push(r);
-        });
-
-        if (toAdd.length) saveRaces([...races, ...toAdd]);
-        setImportResult({ imported, flagged, skipped, details });
-      } catch (err) {
-        setImportResult({ error: "Kunne ikke læse filen. Er det en gyldig backup-fil?" });
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = ""; // allow re-importing same file
-  }
-
-  const TABS = [
-    {id:"map",label:"Kort",icon:"🌍"},
-    {id:"majors",label:"Majors",icon:"⭐"},
-    {id:"emc",label:"EMC",icon:"🇪🇺"},
-    {id:"races",label:"Løb",icon:"📋"},
-    {id:"splits",label:"Statistik",icon:"📊"},
-  ];
-
-  const titles = {
-    map:["Mine ","løbelande"], majors:["World Marathon ","Majors"],
-    emc:["European Marathon ","Classics"],
-    races:["",""], splits:["Tider & ","statistik"],
-  };
-
   return (
-    <div style={{minHeight:"100vh",background:"#f2f7fc",fontFamily:"'DM Sans',sans-serif",color:"#152235",paddingBottom:"calc(72px + env(safe-area-inset-bottom))"}}>
-      {/* Top bar */}
-      <header style={{display:"flex",alignItems:"center",justifyContent:"center",padding:"calc(14px + env(safe-area-inset-top)) 20px 14px",borderBottom:"1px solid #e2ebf5",position:"sticky",top:0,background:"rgba(242,247,252,0.96)",backdropFilter:"blur(12px)",zIndex:100}}>
-        <BrandLogo size={1}/>
-      </header>
-
-      {/* Content */}
-      <main style={{padding:"22px 18px"}}>
-        {tab!=="races" && (
-          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"2.1rem",letterSpacing:2,marginBottom:18,lineHeight:1}}>
-            {titles[tab][0]}<span style={{color:"#1a6fc4"}}>{titles[tab][1]}</span>
-          </div>
-        )}
-        {tab==="map" && <WorldMap races={races}/>}
-        {tab==="majors" && <MajorsView races={races}/>}
-        {tab==="emc" && <EmcView races={races}/>}
-        {tab==="races" && <RacesView races={races} onAdd={()=>setRaceModal("add")} onEdit={r=>setRaceModal(r)} onDelete={r=>setDeleteModal(r)} onExport={handleExport} onImport={()=>fileInputRef.current && fileInputRef.current.click()}/>}
-        {tab==="splits" && <StatsView races={races}/>}
-      </main>
-
-      {/* Hidden file input for import */}
-      <input ref={fileInputRef} type="file" accept="application/json,.json" style={{display:"none"}} onChange={handleImportFile}/>
-
-      {/* Bottom nav (app-style) */}
-      <nav style={{position:"fixed",bottom:0,left:0,right:0,display:"flex",background:"rgba(255,255,255,0.97)",backdropFilter:"blur(12px)",borderTop:"1px solid #e2ebf5",paddingBottom:"env(safe-area-inset-bottom)",zIndex:100,boxShadow:"0 -2px 16px rgba(26,111,196,.06)"}}>
-        {TABS.map(t=>(
-          <button key={t.id} onClick={()=>setTab(t.id)} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3,padding:"10px 4px 12px",background:"transparent",border:"none",cursor:"pointer"}}>
-            <span style={{fontSize:"1.3rem",filter:tab===t.id?"none":"grayscale(0.6) opacity(0.5)"}}>{t.icon}</span>
-            <span style={{fontFamily:"'DM Mono',monospace",fontSize:"0.56rem",letterSpacing:0.2,color:tab===t.id?"#1a6fc4":"#9bb0c8",fontWeight:tab===t.id?600:400,whiteSpace:"nowrap"}}>{t.label}</span>
-          </button>
-        ))}
-      </nav>
-
-      {(raceModal==="add" || (typeof raceModal==="object" && raceModal!==null)) && <RaceModal race={raceModal==="add"?null:raceModal} onSave={handleSaveRace} onClose={()=>setRaceModal(null)}/>}
-      {deleteModal && <DeleteModal race={deleteModal} onConfirm={handleDeleteRace} onClose={()=>setDeleteModal(null)}/>}
-      {importResult && <ImportResultModal result={importResult} onClose={()=>setImportResult(null)}/>}
+    <div style={{padding:"24px", textAlign:"center", minHeight:"100vh", display:"flex", flexDirection:"column", justifyContent:"center"}}>
+      <h1 style={{fontFamily:"'Bebas Neue', sans-serif", fontSize:"3rem", color:"var(--primary)", marginBottom:"8px"}}>✅ APPEN VIRKER!</h1>
+      <p style={{color:"var(--text-muted)", marginBottom:"24px"}}>Koden er indlæst fejlfrit i React på din iPhone.</p>
+      <div style={{background:"var(--card)", padding:"20px", borderRadius:"16px", boxShadow:"var(--shadow)", border:"1px solid var(--border)", maxWidth:"400px", margin:"0 auto"}}>
+        <p style={{fontWeight:"600", color:"var(--text)", marginBottom:"12px"}}>Status på din database:</p>
+        <p style={{fontSize:"1.1rem", color:"var(--accent)", fontWeight:"bold", marginBottom:"16px"}}>{races.length} gemte maratonløb</p>
+        <button onClick={()=>{ if(confirm("Vil du nulstille din database for at teste?")){ saveRaces([]); window.location.reload(); } }} style={{background:"#e53e3e", color:"#fff", border:"none", padding:"10px 16px", borderRadius:"8px", cursor:"pointer", fontWeight:"500"}}>Nulstil test-data</button>
+      </div>
     </div>
   );
 }
 
-// ─── ERROR BOUNDARY ──────────────────────────────────────────
 class ErrorBoundary extends React.Component {
   constructor(props){ super(props); this.state = { hasError:false, msg:"" }; }
   static getDerivedStateFromError(error){ return { hasError:true, msg: error && error.message ? error.message : String(error) }; }
-  componentDidCatch(error, info){ console.error("App-fejl:", error, info); }
+  
+  componentDidCatch(error, info){ 
+    console.error("App-fejl:", error, info); 
+    if (typeof removeSplash === "function") removeSplash(); // 🏁 Tvinger venteskærmen væk ved fejl!
+  }
+  
   render(){
-    if (this.state.hasError) {
+    if(this.state.hasError){
       return (
-        <div style={{minHeight:"100vh",background:"#f2f7fc",fontFamily:"'DM Sans',sans-serif",color:"#152235",display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
-          <div style={{background:"#fff",border:"1px solid #f0d49a",borderRadius:16,padding:"28px 24px",maxWidth:420,boxShadow:"0 16px 48px rgba(26,111,196,.12)"}}>
-            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"1.6rem",letterSpacing:2,color:"#c08820",marginBottom:10}}>⚠️ Noget gik galt</div>
-            <p style={{fontSize:"0.9rem",color:"#6a87a8",lineHeight:1.5,marginBottom:16}}>Appen kunne ikke starte korrekt, men dine gemte løb er der stadig. Prøv at indlæse din seneste backup-fil, eller tryk Genstart.</p>
-            <div style={{display:"flex",gap:8}}>
-              <button onClick={()=>window.location.reload()} style={{flex:1,fontFamily:"'Bebas Neue',sans-serif",fontSize:"1rem",letterSpacing:2,padding:"12px",background:"#1a6fc4",color:"#fff",border:"none",borderRadius:10,cursor:"pointer"}}>GENSTART</button>
-            </div>
-            <details style={{marginTop:16}}>
-              <summary style={{fontFamily:"'DM Mono',monospace",fontSize:"0.62rem",color:"#9bb0c8",cursor:"pointer"}}>Teknisk detalje</summary>
-              <div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.6rem",color:"#9bb0c8",marginTop:6,wordBreak:"break-word"}}>{this.state.msg}</div>
-            </details>
+        <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"sans-serif",padding:"24px",textAlign:"center",color:"#152235",background:"#fff"}}>
+          <div>
+            <h2 style={{color:"#e53e3e", marginBottom:"12px"}}>⚠️ Der skete en intern React-fejl</h2>
+            <p style={{color:"#6a87a8", marginBottom:"8px"}}>Appen knækkede halsen på følgende besked:</p>
+            <code style={{display:"block", background:"#f7fafc", padding:"12px", borderRadius:"8px", color:"#e53e3e", marginBottom:"24px", border:"1px solid #edf2f7", textAlign:"left", fontSize:"0.9rem", overflowX:"auto"}}>{this.state.msg}</code>
+            <button onClick={()=>window.location.reload()} style={{padding:"12px 24px",background:"#1a6fc4",color:"#fff",border:"none",borderRadius:"10px",cursor:"pointer",fontSize:"1rem",fontWeight:"500"}}>Genstart app</button>
           </div>
         </div>
       );
@@ -1206,22 +140,12 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-// ─── RENDER ──────────────────────────────────────────────────
-function removeSplash(){
-  const s = document.getElementById("splash");
-  if (s){ s.style.opacity="0"; s.style.transition="opacity .3s"; setTimeout(()=>{ if(s.parentNode) s.remove(); }, 300); }
-}
-// Safety net: always remove splash after 2.5s no matter what, so the user is never stuck.
-setTimeout(removeSplash, 2500);
-
 try {
   const root = ReactDOM.createRoot(document.getElementById("root"));
   root.render(<ErrorBoundary><App /></ErrorBoundary>);
-  // Remove splash shortly after first paint
-  setTimeout(removeSplash, 400);
 } catch (e) {
   console.error("Kunne ikke starte app:", e);
-  removeSplash();
+  if (typeof removeSplash === "function") removeSplash();
   document.getElementById("root").innerHTML =
     "<div style='min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;padding:24px;text-align:center;color:#152235'>"
     + "<div><h2 style='color:#c08820'>⚠️ Appen kunne ikke starte</h2>"
@@ -1234,12 +158,10 @@ try {
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("./sw.js").then(reg => {
-      // Check for updates whenever the page loads / regains focus
       reg.update();
       document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "visible") reg.update();
       });
-      // When a new SW takes control, reload once to show the new version
       reg.addEventListener("updatefound", () => {
         const nw = reg.installing;
         if (!nw) return;
@@ -1250,13 +172,13 @@ if ("serviceWorker" in navigator) {
         });
       });
     }).catch(err => console.log("SW fejl:", err));
-
-    let reloaded = false;
-    navigator.serviceWorker.addEventListener("controllerchange", () => {
-      if (reloaded) return;
-      reloaded = true;
+  });
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!refreshing) {
+      refreshing = true;
       window.location.reload();
-    });
+    }
   });
 }
 </script>
