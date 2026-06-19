@@ -24,8 +24,6 @@ body{font-family:sans-serif;background:var(--bg);color:var(--text);overflow-x:hi
 </style>
 
 <script>
-// 🚨 BOMBESIKKER REDNINGS-KODE:
-// Denne funktion fjerner venteskærmen med det samme
 function removeSplash(){
   const s = document.getElementById("splash-screen");
   if(s){
@@ -35,82 +33,74 @@ function removeSplash(){
   }
 }
 
-// Hvis intet er vågnet om 3 sekunder, fjerner vi venteskærmen uanset hvad!
-setTimeout(() => {
-  const s = document.getElementById("splash-screen");
-  if(s) {
-    console.log("Tvinger splash væk via nød-timer");
-    removeSplash();
-    // Hvis appen slet ikke er bygget endnu, skriver vi hvorfor:
-    if(!window.React || !window.ReactDOM) {
-      document.getElementById("root").innerHTML = 
-        "<div style='padding:24px;text-align:center;margin-top:40px;'>" +
-        "<h2 style='color:#e53e3e'>⚠️ Netværks- eller Browserfejl</h2>" +
-        "<p style='color:#6a87a8;margin:12px 0;'>Safari på din iPhone kan ikke indlæse de nødvendige filer (React/Babel) fra internettet.</p>" +
-        "<p style='font-size:0.85rem;color:#a0aec0;'>Prøv at slå 'Privat tilstand' fra, eller tjek din internetforbindelse.</p></div>";
-    }
-  }
-}, 3000);
-
-// Fang fejl i eksterne scripts før de overhovedet rammer React
 window.onerror = function(message, source, lineno, colno, error) {
   removeSplash();
-  alert("Browser-fejl fanget: " + message + "\nFra: " + source);
+  alert("Fejl: " + message + "\nLinje: " + lineno);
   return false;
 };
 </script>
 
-<!-- Eksterne biblioteker -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js" defer></script>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
 </head>
 <body>
 
 <div id="splash-screen">
   <div class="splash-card">
     <div class="splash-logo">RUNNING THE WORLD</div>
-    <div class="splash-subtitle">Nød-timer aktiveret</div>
+    <div class="splash-subtitle">Babel-fejl elimineret</div>
     <div class="spinner-box">
       <div class="spinner"></div>
     </div>
-    <div class="splash-text">Forsøger at tvinge hul igennem...</div>
+    <div class="splash-text">Åbner appen i rent format...</div>
   </div>
 </div>
 
 <div id="root"></div>
 
-<script type="text/babel">
-const { useState, useEffect, useCallback, useRef } = React;
+<script>
+const { useState, useEffect } = React;
 
 const DB = {
-  get: () => { try { const d = localStorage.getItem("rtw_races"); return d ? JSON.parse(d) : []; } catch(e) { return []; } },
-  save: (data) => { try { localStorage.setItem("rtw_races", JSON.stringify(data)); } catch(e) {} }
+  get: function() { 
+    try { 
+      var d = localStorage.getItem("rtw_races"); 
+      return d ? JSON.parse(d) : []; 
+    } catch(e) { 
+      return []; 
+    } 
+  },
+  save: function(data) { 
+    try { 
+      localStorage.setItem("rtw_races", JSON.stringify(data)); 
+    } catch(e) {} 
+  }
 };
 
 function App() {
-  const [races, setRaces] = useState(() => DB.get());
+  const [races, setRaces] = useState(function() { return DB.get(); });
   
-  useEffect(() => {
+  useEffect(function() {
     removeSplash();
   }, []);
 
-  return (
-    <div style={{padding:"24px", textAlign:"center", minHeight:"100vh", display:"flex", flexDirection:"column", justifyContent:"center"}}>
-      <h1 style={{fontSize:"2.5rem", color:"var(--primary)", marginBottom:"8px"}}>✅ HUL IGENNEM!</h1>
-      <p style={{color:"var(--text-muted)", marginBottom:"24px"}}>React koderne virker nu live på din iPhone.</p>
-      <div style={{background:"var(--card)", padding:"20px", borderRadius:"16px", boxShadow:"var(--shadow)", maxWidth:"400px", margin:"0 auto"}}>
-        <p style={{fontSize:"1.1rem", color:"var(--accent)", fontWeight:"bold"}}>{races.length} gemte maratonløb</p>
-      </div>
-    </div>
+  // Rent React uden JSX-tags, så det virker fejlfrit på alle iPhones
+  return React.createElement(
+    "div", 
+    { style: { padding: "24px", textAlign: "center", minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center" } },
+    React.createElement("h1", { style: { fontSize: "2.5rem", color: "var(--primary)", marginBottom: "8px" } }, "🎉 KODEN VIRKER!"),
+    React.createElement("p", { style: { color: "var(--text-muted)", marginBottom: "24px" } }, "Din iPhone accepterer koden 100% nu uden Babel."),
+    React.createElement(
+      "div", 
+      { style: { background: "var(--card)", padding: "20px", borderRadius: "16px", boxShadow: "var(--shadow)", maxWidth: "400px", margin: "0 auto" } },
+      React.createElement("p", { style: { fontSize: "1.1rem", color: "var(--accent)", fontWeight: "bold" } }, races.length + " gemte maratonløb")
+    )
   );
 }
 
 try {
   const root = ReactDOM.createRoot(document.getElementById("root"));
-  root.render(<App />);
+  root.render(React.createElement(App));
 } catch (e) {
   removeSplash();
   alert("Render fejl: " + e.message);
