@@ -1,6 +1,6 @@
-const CACHE = "rtw-v14";
+const CACHE = "rtw-v15";
 
-// External libs + map data: these never change, so cache-first is fine.
+// Eksterne biblioteker og kortdata.
 const STATIC_ASSETS = [
   "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap",
   "https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js",
@@ -8,6 +8,7 @@ const STATIC_ASSETS = [
   "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json"
 ];
 
+// Install: Cache alle statiske ressourcer med det samme
 self.addEventListener("install", e => {
   e.waitUntil(
     caches.open(CACHE)
@@ -16,6 +17,7 @@ self.addEventListener("install", e => {
   );
 });
 
+// Activate: Slet gamle caches for at frigøre plads og undgå konflikter
 self.addEventListener("activate", e => {
   e.waitUntil(
     caches.keys()
@@ -24,18 +26,29 @@ self.addEventListener("activate", e => {
   );
 });
 
-// Allow the page to tell the SW to activate immediately
+// Gør det muligt for appen at tvinge en øjeblikkelig opdatering
 self.addEventListener("message", e => {
   if (e.data === "skipWaiting") self.skipWaiting();
 });
 
+// Fetch: Håndtering af netværksanmodninger
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
+
   const url = new URL(e.request.url);
-  const isStatic = STATIC_ASSETS.some(a => e.request.url.startsWith(a.split("?")[0]));
   const isSameOrigin = url.origin === self.location.origin;
 
-  // App files (HTML/JS on our own origin): NETWORK-FIRST so updates always show.
+  // ROBUST TJEK: Sammenligner origin og sti (ignorerer tilfældige query-parametre eller formateringsfejl)
+  const isStatic = STATIC_ASSETS.some(asset => {
+    try {
+      const assetUrl = new URL(asset);
+      return assetUrl.origin === url.origin && assetUrl.pathname === url.pathname;
+    } catch {
+      return false;
+    }
+  });
+
+  // 1. App-filer (HTML, JS, CSS på dit eget domæne): NETWORK-FIRST
   if (isSameOrigin && !isStatic) {
     e.respondWith(
       fetch(e.request)
@@ -53,17 +66,6 @@ self.addEventListener("fetch", e => {
     return;
   }
 
-  // Static external assets: CACHE-FIRST (fast, offline-friendly).
+  // 2. Statiske eksterne filer (D3, TopoJSON, Kort, Skrifttyper): CACHE-FIRST
   e.respondWith(
-    caches.match(e.request).then(cached => {
-      if (cached) return cached;
-      return fetch(e.request).then(resp => {
-        if (resp && resp.status === 200 && resp.type !== "opaque") {
-          const clone = resp.clone();
-          caches.open(CACHE).then(c => c.put(e.request, clone));
-        }
-        return resp;
-      });
-    })
-  );
-});
+    caches.match(e.request).then(cached =>
