@@ -7,51 +7,25 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Running The World">
-<meta name="mobile-web-app-capable" content="yes">
-<link rel="manifest" href="./manifest.json">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%231a6fc4'/%3E%3Ccircle cx='256' cy='256' r='150' fill='none' stroke='white' stroke-width='20'/%3E%3Cellipse cx='256' cy='256' rx='62' ry='150' fill='none' stroke='white' stroke-width='12' opacity='0.6'/%3E%3Cline x1='106' y1='256' x2='406' y2='256' stroke='white' stroke-width='12' opacity='0.6'/%3E%3Cpath d='M160 150 A130 130 0 0 0 352 150' fill='none' stroke='white' stroke-width='8' opacity='0.4'/%3E%3Cpath d='M160 362 A130 130 0 0 1 352 362' fill='none' stroke='white' stroke-width='8' opacity='0.4'/%3E%3C/svg%3E">
 <title>Running The World</title>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js" defer></script>
-<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
-
 <style>
-:root{--bg:#f4f7fa;--card:#ffffff;--text:#152235;--text-muted:#6a87a8;--primary:#1a6fc4;--primary-dark:#125293;--accent:#c08820;--border:#e2ebf3;--shadow:0 10px 30px rgba(26,111,196,0.06);--radius:16px;--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px)}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.4;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+:root{--bg:#f4f7fa;--card:#ffffff;--text:#152235;--text-muted:#6a87a8;--primary:#1a6fc4;--primary-dark:#125293;--accent:#c08820;--border:#e2ebf3;--shadow:0 10px 30px rgba(26,111,196,0.06);--radius:16px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden}
 #splash-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:#ffffff;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity 0.4s ease,visibility 0.4s ease;padding:24px;text-align:center}
 .splash-card{background:#ffffff;padding:40px 32px;border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,0.05);max-width:380px;width:100%;border:1px solid #f0f4f8}
-.splash-logo{font-family:'Bebas Neue',sans-serif;font-size:2.8rem;letter-spacing:1px;color:var(--accent);margin-bottom:12px;line-height:1}
-.splash-subtitle{font-size:0.95rem;color:var(--primary);font-weight:500;margin-bottom:32px;opacity:0.8;letter-spacing:0.5px}
+.splash-logo{font-size:2.4rem;font-weight:bold;color:var(--accent);margin-bottom:12px;line-height:1}
+.splash-subtitle{font-size:0.95rem;color:var(--primary);font-weight:500;margin-bottom:32px;opacity:0.8}
 .spinner-box{display:flex;justify-content:center;align-items:center;margin-bottom:24px}
 .spinner{width:28px;height:28px;border:3px solid #eaf2f9;border-top:3px solid var(--primary);border-radius:50%;animation:spin 0.8s linear infinite}
-.splash-text{font-size:0.9rem;color:var(--primary);font-weight:600;letter-spacing:0.2px}
+.splash-text{font-size:0.9rem;color:var(--primary);font-weight:600}
 @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
 </style>
-</head>
-<body>
-
-<div id="splash-screen">
-  <div class="splash-card">
-    <div class="splash-logo">RUNNING THE WORLD</div>
-    <div class="splash-subtitle">Fejlsikret iPhone-test</div>
-    <div class="spinner-box">
-      <div class="spinner"></div>
-    </div>
-    <div class="splash-text">Indlæser appen uden om fejlen...</div>
-  </div>
-</div>
-
-<div id="root"></div>
 
 <script>
+// 🚨 BOMBESIKKER REDNINGS-KODE:
+// Denne funktion fjerner venteskærmen med det samme
 function removeSplash(){
   const s = document.getElementById("splash-screen");
   if(s){
@@ -60,126 +34,86 @@ function removeSplash(){
     setTimeout(() => s.remove(), 400);
   }
 }
-</script>
 
-<script type="text/babel">
-const { useState, useEffect, useMemo, useCallback, useRef } = React;
-
-const DB = {
-  get: () => {
-    try {
-      const d = localStorage.getItem("rtw_races");
-      return d ? JSON.parse(d) : [];
-    } catch(e) {
-      console.error("DB fejl:", e);
-      return [];
-    }
-  },
-  save: (data) => {
-    try {
-      localStorage.setItem("rtw_races", JSON.stringify(data));
-    } catch(e) {
-      console.error("Gem fejl:", e);
+// Hvis intet er vågnet om 3 sekunder, fjerner vi venteskærmen uanset hvad!
+setTimeout(() => {
+  const s = document.getElementById("splash-screen");
+  if(s) {
+    console.log("Tvinger splash væk via nød-timer");
+    removeSplash();
+    // Hvis appen slet ikke er bygget endnu, skriver vi hvorfor:
+    if(!window.React || !window.ReactDOM) {
+      document.getElementById("root").innerHTML = 
+        "<div style='padding:24px;text-align:center;margin-top:40px;'>" +
+        "<h2 style='color:#e53e3e'>⚠️ Netværks- eller Browserfejl</h2>" +
+        "<p style='color:#6a87a8;margin:12px 0;'>Safari på din iPhone kan ikke indlæse de nødvendige filer (React/Babel) fra internettet.</p>" +
+        "<p style='font-size:0.85rem;color:#a0aec0;'>Prøv at slå 'Privat tilstand' fra, eller tjek din internetforbindelse.</p></div>";
     }
   }
+}, 3000);
+
+// Fang fejl i eksterne scripts før de overhovedet rammer React
+window.onerror = function(message, source, lineno, colno, error) {
+  removeSplash();
+  alert("Browser-fejl fanget: " + message + "\nFra: " + source);
+  return false;
+};
+</script>
+
+<!-- Eksterne biblioteker -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js" defer></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
+</head>
+<body>
+
+<div id="splash-screen">
+  <div class="splash-card">
+    <div class="splash-logo">RUNNING THE WORLD</div>
+    <div class="splash-subtitle">Nød-timer aktiveret</div>
+    <div class="spinner-box">
+      <div class="spinner"></div>
+    </div>
+    <div class="splash-text">Forsøger at tvinge hul igennem...</div>
+  </div>
+</div>
+
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useCallback, useRef } = React;
+
+const DB = {
+  get: () => { try { const d = localStorage.getItem("rtw_races"); return d ? JSON.parse(d) : []; } catch(e) { return []; } },
+  save: (data) => { try { localStorage.setItem("rtw_races", JSON.stringify(data)); } catch(e) {} }
 };
 
 function App() {
   const [races, setRaces] = useState(() => DB.get());
-  const [tab, setTab] = useState("map");
-  const [raceModal, setRaceModal] = useState(null);
-  const [deleteModal, setDeleteModal] = useState(null);
-  const [importResult, setImportResult] = useState(null); 
-  const fileInputRef = useRef(null);
-
-  // 🏁 Fjerner automatisk venteskærmen når React er vågnet og klar!
+  
   useEffect(() => {
-    if (typeof removeSplash === "function") {
-      removeSplash();
-    }
+    removeSplash();
   }, []);
-
-  const saveRaces = useCallback((newRaces)=>{ setRaces(newRaces); DB.save(newRaces); },[]);
 
   return (
     <div style={{padding:"24px", textAlign:"center", minHeight:"100vh", display:"flex", flexDirection:"column", justifyContent:"center"}}>
-      <h1 style={{fontFamily:"'Bebas Neue', sans-serif", fontSize:"3rem", color:"var(--primary)", marginBottom:"8px"}}>✅ APPEN VIRKER!</h1>
-      <p style={{color:"var(--text-muted)", marginBottom:"24px"}}>Koden er indlæst fejlfrit i React på din iPhone.</p>
-      <div style={{background:"var(--card)", padding:"20px", borderRadius:"16px", boxShadow:"var(--shadow)", border:"1px solid var(--border)", maxWidth:"400px", margin:"0 auto"}}>
-        <p style={{fontWeight:"600", color:"var(--text)", marginBottom:"12px"}}>Status på din database:</p>
-        <p style={{fontSize:"1.1rem", color:"var(--accent)", fontWeight:"bold", marginBottom:"16px"}}>{races.length} gemte maratonløb</p>
-        <button onClick={()=>{ if(confirm("Vil du nulstille din database for at teste?")){ saveRaces([]); window.location.reload(); } }} style={{background:"#e53e3e", color:"#fff", border:"none", padding:"10px 16px", borderRadius:"8px", cursor:"pointer", fontWeight:"500"}}>Nulstil test-data</button>
+      <h1 style={{fontSize:"2.5rem", color:"var(--primary)", marginBottom:"8px"}}>✅ HUL IGENNEM!</h1>
+      <p style={{color:"var(--text-muted)", marginBottom:"24px"}}>React koderne virker nu live på din iPhone.</p>
+      <div style={{background:"var(--card)", padding:"20px", borderRadius:"16px", boxShadow:"var(--shadow)", maxWidth:"400px", margin:"0 auto"}}>
+        <p style={{fontSize:"1.1rem", color:"var(--accent)", fontWeight:"bold"}}>{races.length} gemte maratonløb</p>
       </div>
     </div>
   );
 }
 
-class ErrorBoundary extends React.Component {
-  constructor(props){ super(props); this.state = { hasError:false, msg:"" }; }
-  static getDerivedStateFromError(error){ return { hasError:true, msg: error && error.message ? error.message : String(error) }; }
-  
-  componentDidCatch(error, info){ 
-    console.error("App-fejl:", error, info); 
-    if (typeof removeSplash === "function") removeSplash(); // 🏁 Tvinger venteskærmen væk ved fejl!
-  }
-  
-  render(){
-    if(this.state.hasError){
-      return (
-        <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"sans-serif",padding:"24px",textAlign:"center",color:"#152235",background:"#fff"}}>
-          <div>
-            <h2 style={{color:"#e53e3e", marginBottom:"12px"}}>⚠️ Der skete en intern React-fejl</h2>
-            <p style={{color:"#6a87a8", marginBottom:"8px"}}>Appen knækkede halsen på følgende besked:</p>
-            <code style={{display:"block", background:"#f7fafc", padding:"12px", borderRadius:"8px", color:"#e53e3e", marginBottom:"24px", border:"1px solid #edf2f7", textAlign:"left", fontSize:"0.9rem", overflowX:"auto"}}>{this.state.msg}</code>
-            <button onClick={()=>window.location.reload()} style={{padding:"12px 24px",background:"#1a6fc4",color:"#fff",border:"none",borderRadius:"10px",cursor:"pointer",fontSize:"1rem",fontWeight:"500"}}>Genstart app</button>
-          </div>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
-
 try {
   const root = ReactDOM.createRoot(document.getElementById("root"));
-  root.render(<ErrorBoundary><App /></ErrorBoundary>);
+  root.render(<App />);
 } catch (e) {
-  console.error("Kunne ikke starte app:", e);
-  if (typeof removeSplash === "function") removeSplash();
-  document.getElementById("root").innerHTML =
-    "<div style='min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;padding:24px;text-align:center;color:#152235'>"
-    + "<div><h2 style='color:#c08820'>⚠️ Appen kunne ikke starte</h2>"
-    + "<p style='color:#6a87a8'>Dine gemte løb er der stadig. Genindlæs siden, eller indlæs din backup-fil.</p>"
-    + "<button onclick='window.location.reload()' style='padding:12px 24px;background:#1a6fc4;color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:1rem'>Genstart</button></div></div>";
-}
-</script>
-
-<script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js").then(reg => {
-      reg.update();
-      document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") reg.update();
-      });
-      reg.addEventListener("updatefound", () => {
-        const nw = reg.installing;
-        if (!nw) return;
-        nw.addEventListener("statechange", () => {
-          if (nw.state === "installed" && navigator.serviceWorker.controller) {
-            nw.postMessage("skipWaiting");
-          }
-        });
-      });
-    }).catch(err => console.log("SW fejl:", err));
-  });
-  let refreshing = false;
-  navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if (!refreshing) {
-      refreshing = true;
-      window.location.reload();
-    }
-  });
+  removeSplash();
+  alert("Render fejl: " + e.message);
 }
 </script>
 </body>
