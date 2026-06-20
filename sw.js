@@ -1,4 +1,4 @@
-const CACHE = "rtw-v16";
+const CACHE = "rtw-v17";
 
 // External libs + map data: these never change, so cache-first is fine.
 const STATIC_ASSETS = [
